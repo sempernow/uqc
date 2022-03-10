@@ -1,0 +1,142 @@
+# ~~[`uqc`](https://github.com/sempernow/uqc)~~ NO GitHub repo
+
+An http client and a public CLI (demo) for the `uqrate` project.
+
+## Package `/client`
+
+Package client provides an http client as a golang library to access uqrate services. Currently, all its functions return a [`client.Response`](client/common.go) struct.
+
+### ~~Use the package~~  NO GitHub repo
+
+```bash
+go get -u github.com/sempernow/uqc/client
+
+# OR, for latest 
+GO111MODULE="off" go get -u github.com/sempernow/uqc
+```
+
+```golang
+import "github.com/sempernow/uqc/client"
+```
+
+## Package `/app/cli`
+
+Each command is a function of the `client` package. So it serves as a template for building a standalone CLI (binary), and as a reference for utilizing the `client` package in other Golang packages.
+
+### `go run ...` 
+
+#### `trace`
+
+```bash
+go run ./app/cli trace https://uqrate.org/TestChnHost json |jq .
+```
+```bash
+:authority: uqrate.org
+:method: GET
+...
+:status: 200
+...
+the request total time is 92.8375ms, and costs 77.8638ms on tls handshake
+----------
+TotalTime         : 92.8375ms
+DNSLookupTime     : 1.9212ms
+TCPConnectTime    : 383.4µs
+TLSHandshakeTime  : 77.8638ms
+FirstResponseTime : 12.363ms
+ResponseTime      : 77.9µs
+...
+```
+- Note the __TLS handshake__ accounts for __84%__ of service-response time.
+- Optionally dump to `APP_CLIENT_TRACE_FPATH`
+
+@ `strace` (Linux utility) | [TLS : performance impact](https://blog.yugabyte.com/measuring-the-performance-impact-of-tls-encryption-using-tpcc/ "2021 'Measuring the Performance Impact of TLS Encryption Using TPC-C'")
+
+```bash
+strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app/centre
+```
+
+### Demonstate `client` package using the CLI
+
+#### `env`
+
+Print JSON of the injected `client.Env`
+
+```bash
+go run ./app/cli \
+    --service-base-url=https://uqrate.org \
+    --client-user=$user \
+    --client-pass=$pass \
+    --client-timeout=3s \
+    --channel-host-url=http://127.0.0.1:5500 \
+    --channel-slug=$slug \
+    env
+```
+
+#### `token`
+
+Get a token (cryptographically-signed JWT) per uqrate-member credentials.
+
+```bash
+go run ./app/cli \
+    --service-base-url=https://uqrate.org \
+    --client-user=$user \
+    --client-pass=$pass \
+    token |jq -Mr .body
+@ Token:
+        user: usertest
+        pass: 111•••
+```
+```bash
+eyJ...OfA
+```
+- The raw token prints to stdout; All else to stderr, so can pipe.
+
+&nbsp;
+
+#### `upsert`
+
+Insert/update a long-form message (article) of a uqrate channel as a channel-hosting member and owner of the channel. Such channel hosts have access to the per-article reply messages configured as a uqrate-hosted comments section running in an iframe with each such article at their site. See [`uqrate.js`](https://uqrate.org/sa/scripts/uqrate.js) .
+
+```bash
+export token=$(go run ./app/cli --service-base-url=https://uqrate.org --client-user=$user --client-pass=$pass token |jq -Mr .body)
+
+go run ./app/cli \
+    --service-base-url=$svc_base_url \
+    upsert $token $chn_slug $(uuid -v 5 ns:OID abc123) 'A NEW title' 'A summary.' 'NEW body here.'
+```
+```bash
+# @ 201
+{"body":"e8fc2054-11c8-5d32-9bb5-4b857504122e","code":201}
+
+# @ 204
+{"code":204}
+
+# @ 401
+{"code":401,"error":"token and refresh-reference cookie invalid: http: named cookie not present"}
+```
+
+### @ `make gorun` | [`Makefile.settings`](Makefile.settings)
+
+Same as above, yet per [`Makefile` recipe](Makefile) configured per `makeargs` param.
+
+#### `trace`
+
+```bash
+export makeargs='trace https://swarm.foo/TestChnHost json |jq .'
+make gorun
+...
+```
+
+#### `token`
+
+```bash
+export makeargs='token'
+make gorun
+
+bash make.go.run.app.sh cli token
+/s/DEV/go/uqrate/v4/assets/.env /s/DEV/go/uqrate/v4
+/s/DEV/go/uqrate/v4
+{"body":"eyJ...4jA","code":200}
+```
+
+## &nbsp;
