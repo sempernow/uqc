@@ -1,4 +1,4 @@
-// Package htp/main provides a CLI interface for the app's http client.
+// Package app/cli/main provides a CLI interface for uqrate's http client.
 package main
 
 import (

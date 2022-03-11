@@ -52,6 +52,6 @@ export APP_CLIENT_TRACE_FPATH ?= client.trace
 
 ### Channel
 export APP_CHANNEL_SLUG     ?= TestChnHost
-#export APP_CHANNEL_HOST_URL ?= http://127.0.0.1:5500
-#export APP_CHANNEL_HOST_URL ?= https://${APP_CHANNEL_HOST}
-#export APP_CHANNEL_OWNER_ID ?=
+# export APP_CHANNEL_HOST_URL ?= http://127.0.0.1:5500
+# export APP_CHANNEL_HOST_URL ?= https://${APP_CHANNEL_HOST}
+# export APP_CHANNEL_OWNER_ID ?=

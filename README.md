@@ -1,4 +1,4 @@
-# ~~[`uqc`](https://github.com/sempernow/uqc)~~ NO GitHub repo
+# [`uqc`](https://github.com/sempernow/uqc)
 
 An http client and a public CLI (demo) for the `uqrate` project.
 
@@ -6,7 +6,7 @@ An http client and a public CLI (demo) for the `uqrate` project.
 
 Package client provides an http client as a golang library to access uqrate services. Currently, all its functions return a [`client.Response`](client/common.go) struct.
 
-### ~~Use the package~~  NO GitHub repo
+### Use the package
 
 ```bash
 go get -u github.com/sempernow/uqc/client
@@ -18,6 +18,8 @@ GO111MODULE="off" go get -u github.com/sempernow/uqc
 ```golang
 import "github.com/sempernow/uqc/client"
 ```
+
+See the CLI package, [`main.go`](app/cli/main.go), for examples of `client` calls.
 
 ## Package `/app/cli`
 
