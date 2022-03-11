@@ -56,3 +56,9 @@ _testmain.go
 //*.test
 .vscode/tasks.json
 node_modules
+
+# Project specific
+LOG.md
+LOG.html
+make.md2html.sh
+make.perms.sh

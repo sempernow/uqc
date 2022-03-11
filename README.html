@@ -24,34 +24,42 @@
 </head>
 <body>
     <main>
-        <h1><del><a href="https://github.com/sempernow/uqc"><code>uqc</code></a></del> NO GitHub repo</h1>
+        <h1><a href="https://github.com/sempernow/uqc" title="GitHub"><code>sempernow/uqc</code></a></h1>
 
-<p>An http client and a public CLI (demo) for the <code>uqrate</code> project.</p>
+<p>An http client and CLI (demo) for the <a href="https://uqrate.org" title="uqrate.org"><code>uqrate</code></a> project. The uqrate client wraps that of <a href="https://github.com/imroc/req" title="GitHub">imroc/req</a> .</p>
 
 <h2>Package <code>/client</code></h2>
 
-<p>Package client provides an http client as a golang library to access uqrate services. Currently, all its functions return a <a href="client/common.go"><code>client.Response</code></a> struct.</p>
+<p>Package client provides an http client as a golang library to access uqrate services. Its functions return a <code>client.Response</code>.</p>
 
-<h3><del>Use the package</del>  NO GitHub repo</h3>
+<pre><code class="language-golang">type Response struct {
+	Body  string `json:&quot;body,omitempty&quot;`
+	Code  int    `json:&quot;code,omitempty&quot;`
+	Error string `json:&quot;error,omitempty&quot;`
+}
+</code></pre>
 
-<pre><code class="language-bash">go get -u github.com/sempernow/uqc/client
+<h3>Use the package</h3>
 
-# OR, for latest 
-GO111MODULE=&quot;off&quot; go get -u github.com/sempernow/uqc
+<pre><code class="language-bash">go get -u github.com/sempernow/uqc
 </code></pre>
 
 <pre><code class="language-golang">import &quot;github.com/sempernow/uqc/client&quot;
 </code></pre>
 
+<p>See the CLI package, <a href="app/cli/main.go" title="app/cli/main.go"><code>main.go</code></a>, for examples of <code>client</code> calls.</p>
+
 <h2>Package <code>/app/cli</code></h2>
 
 <p>Each command is a function of the <code>client</code> package. So it serves as a template for building a standalone CLI (binary), and as a reference for utilizing the <code>client</code> package in other Golang packages.</p>
+
+<h2>Demonstate <code>client</code> package using the CLI</h2>
 
 <h3><code>go run ...</code></h3>
 
 <h4><code>trace</code></h4>
 
-<pre><code class="language-bash">go run ./app/cli trace https://uqrate.org/TestChnHost json |jq .
+<pre><code class="language-bash">go run ./app/cli trace https://uqrate.org/app json |jq .
 </code></pre>
 
 <pre><code class="language-bash">:authority: uqrate.org
@@ -71,16 +79,8 @@ ResponseTime      : 77.9µs
 </code></pre>
 
 <ul>
-<li>Note the <strong>TLS handshake</strong> accounts for <strong>84%</strong> of service-response time.</li>
 <li>Optionally dump to <code>APP_CLIENT_TRACE_FPATH</code></li>
 </ul>
-
-<p>@ <code>strace</code> (Linux utility) | <a href="https://blog.yugabyte.com/measuring-the-performance-impact-of-tls-encryption-using-tpcc/" title="2021 'Measuring the Performance Impact of TLS Encryption Using TPC-C'">TLS : performance impact</a></p>
-
-<pre><code class="language-bash">strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app/centre
-</code></pre>
-
-<h3>Demonstate <code>client</code> package using the CLI</h3>
 
 <h4><code>env</code></h4>
 
@@ -116,8 +116,6 @@ ResponseTime      : 77.9µs
 <ul>
 <li>The raw token prints to stdout; All else to stderr, so can pipe.</li>
 </ul>
-
-<p>&nbsp;</p>
 
 <h4><code>upsert</code></h4>
 
@@ -160,6 +158,13 @@ bash make.go.run.app.sh cli token
 /s/DEV/go/uqrate/v4/assets/.env /s/DEV/go/uqrate/v4
 /s/DEV/go/uqrate/v4
 {&quot;body&quot;:&quot;eyJ...4jA&quot;,&quot;code&quot;:200}
+</code></pre>
+
+<h2>Notes on <a href="https://blog.yugabyte.com/measuring-the-performance-impact-of-tls-encryption-using-tpcc/" title="2021 'Measuring the Performance Impact of TLS Encryption Using TPC-C'">TLS : performance impact</a></h2>
+
+<p>@ <code>strace</code> (Linux utility)</p>
+
+<pre><code class="language-bash">strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app
 </code></pre>
 
 <h2>&nbsp;</h2>

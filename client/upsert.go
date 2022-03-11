@@ -7,7 +7,10 @@ import (
 )
 
 const upsertINSTRUCT = `
-	upsert <token> <slug> <mref> <title> <summary> <body>
+	upsert <token> <mid> <&Message> [<slug>]
+
+	- Default slug: env.Slug
+	- Message.Body must not be empty.
 `
 
 // Message must fit message.Message
