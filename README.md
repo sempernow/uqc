@@ -25,6 +25,8 @@ See the CLI package, [`main.go`](app/cli/main.go), for examples of `client` call
 
 Each command is a function of the `client` package. So it serves as a template for building a standalone CLI (binary), and as a reference for utilizing the `client` package in other Golang packages.
 
+## Demonstate `client` package using the CLI
+
 ### `go run ...` 
 
 #### `trace`
@@ -56,8 +58,6 @@ ResponseTime      : 77.9µs
 ```bash
 strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app/centre
 ```
-
-### Demonstate `client` package using the CLI
 
 #### `env`
 

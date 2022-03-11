@@ -49,6 +49,8 @@ GO111MODULE=&quot;off&quot; go get -u github.com/sempernow/uqc
 
 <p>Each command is a function of the <code>client</code> package. So it serves as a template for building a standalone CLI (binary), and as a reference for utilizing the <code>client</code> package in other Golang packages.</p>
 
+<h2>Demonstate <code>client</code> package using the CLI</h2>
+
 <h3><code>go run ...</code></h3>
 
 <h4><code>trace</code></h4>
@@ -81,8 +83,6 @@ ResponseTime      : 77.9µs
 
 <pre><code class="language-bash">strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app/centre
 </code></pre>
-
-<h3>Demonstate <code>client</code> package using the CLI</h3>
 
 <h4><code>env</code></h4>
 
