@@ -25,7 +25,7 @@ go get -u github.com/sempernow/uqc
 import "github.com/sempernow/uqc/client"
 ```
 
-See the CLI package, [`main.go`](app/cli/main.go), for examples of `client` calls.
+See the CLI package, [`main.go`](app/cli/main.go "app/cli/main.go"), for examples of `client` calls.
 
 ## Package `/app/cli`
 
