@@ -60,5 +60,6 @@ node_modules
 # Project specific
 LOG.md
 LOG.html
+README.html
 make.md2html.sh
 make.perms.sh
