@@ -1,18 +1,24 @@
-# [`uqc`](https://github.com/sempernow/uqc)
+# [`sempernow/uqc`](https://github.com/sempernow/uqc "GitHub")
 
-An http client and a public CLI (demo) for the `uqrate` project.
+An http client and CLI (demo) for the `uqrate` project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req/v3 "GitHub") . 
+
 
 ## Package `/client`
 
-Package client provides an http client as a golang library to access uqrate services. Currently, all its functions return a [`client.Response`](client/common.go) struct.
+Package client provides an http client as a golang library to access uqrate services. Its functions return a `client.Response`.
+
+```golang
+type Response struct {
+	Body  string `json:"body,omitempty"`
+	Code  int    `json:"code,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+```
 
 ### Use the package
 
 ```bash
-go get -u github.com/sempernow/uqc/client
-
-# OR, for latest 
-GO111MODULE="off" go get -u github.com/sempernow/uqc
+go get -u github.com/sempernow/uqc
 ```
 
 ```golang
@@ -32,7 +38,7 @@ Each command is a function of the `client` package. So it serves as a template f
 #### `trace`
 
 ```bash
-go run ./app/cli trace https://uqrate.org/TestChnHost json |jq .
+go run ./app/cli trace https://uqrate.org/app json |jq .
 ```
 ```bash
 :authority: uqrate.org
@@ -50,14 +56,7 @@ FirstResponseTime : 12.363ms
 ResponseTime      : 77.9µs
 ...
 ```
-- Note the __TLS handshake__ accounts for __84%__ of service-response time.
 - Optionally dump to `APP_CLIENT_TRACE_FPATH`
-
-@ `strace` (Linux utility) | [TLS : performance impact](https://blog.yugabyte.com/measuring-the-performance-impact-of-tls-encryption-using-tpcc/ "2021 'Measuring the Performance Impact of TLS Encryption Using TPC-C'")
-
-```bash
-strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app/centre
-```
 
 #### `env`
 
@@ -92,8 +91,6 @@ go run ./app/cli \
 eyJ...OfA
 ```
 - The raw token prints to stdout; All else to stderr, so can pipe.
-
-&nbsp;
 
 #### `upsert`
 
@@ -140,5 +137,14 @@ bash make.go.run.app.sh cli token
 /s/DEV/go/uqrate/v4
 {"body":"eyJ...4jA","code":200}
 ```
+
+## Notes on [TLS : performance impact](https://blog.yugabyte.com/measuring-the-performance-impact-of-tls-encryption-using-tpcc/ "2021 'Measuring the Performance Impact of TLS Encryption Using TPC-C'")
+
+@ `strace` (Linux utility) 
+
+```bash
+strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app
+```
+
 
 ## &nbsp;
