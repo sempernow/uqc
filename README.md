@@ -1,6 +1,6 @@
 # [`sempernow/uqc`](https://github.com/sempernow/uqc "GitHub")
 
-An http client and CLI (demo) for the `uqrate` project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req/v3 "GitHub") . 
+An http client and CLI (demo) for the `uqrate` project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req "GitHub") . 
 
 
 ## Package `/client`
