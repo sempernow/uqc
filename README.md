@@ -2,7 +2,6 @@
 
 An http client and CLI (demo) for the [`uqrate`](https://uqrate.org "uqrate.org") project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req "GitHub") . 
 
-
 ## Package `/client`
 
 Package client provides an http client as a golang library to access uqrate services. Its functions return a `client.Response`.
@@ -121,21 +120,23 @@ Same as above, yet per [`Makefile` recipe](Makefile) configured per `makeargs` p
 #### `trace`
 
 ```bash
-export makeargs='trace https://swarm.foo/TestChnHost json |jq .'
+export makeargs='trace https://swarm.foo/app json |jq .'
 make gorun
+```
+```bash
+bash make.go.run.app.sh cli trace https://swarm.foo/app json |jq .
 ...
 ```
 
 #### `token`
 
 ```bash
-export makeargs='token'
+export makeargs='token |jq -Mr .body'
 make gorun
-
+```
+```bash
 bash make.go.run.app.sh cli token
-/s/DEV/go/uqrate/v4/assets/.env /s/DEV/go/uqrate/v4
-/s/DEV/go/uqrate/v4
-{"body":"eyJ...4jA","code":200}
+eyJ...gNQ
 ```
 
 ## Notes on [TLS : performance impact](https://blog.yugabyte.com/measuring-the-performance-impact-of-tls-encryption-using-tpcc/ "2021 'Measuring the Performance Impact of TLS Encryption Using TPC-C'")
@@ -145,6 +146,5 @@ bash make.go.run.app.sh cli token
 ```bash
 strace -o 'out.log' -f -tt curl -H 'Accept: application/json' https://uqrate.org/app
 ```
-
 
 ## &nbsp;

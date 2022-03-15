@@ -6,19 +6,12 @@ import (
 
 /******************************************************************************
 USAGE:
-		tkn, err := client.Token(env)
+		resp, err := env.Token()
 		if err != nil {
 			return err
 		}
-		fmt.Println(kit.Stringify(tkn)) // JSON
+		fmt.Println(kit.Stringify(resp)) // JSON
 *****************************************************************************/
-
-const tokenINSTRUCT = `
-	--client-user=foo
-	--client-pass=bar
-	--service-root=https://swarm.foo
-	token
-`
 
 // Token retrieves an access token (JWT) per Basic Auth request.
 func (env *Env) Token() *Response {
@@ -42,6 +35,7 @@ func (env *Env) Token() *Response {
 			Error: err.Error(),
 		}
 	}
+
 	if resp.IsError() {
 		return &Response{
 			Code:  resp.StatusCode,

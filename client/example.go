@@ -6,7 +6,7 @@ import (
 	"github.com/imroc/req/v3"
 )
 
-func Example(env *Env) error { // ☩ go run ./app/htp example |jq .
+func Example(env *Env) error {
 	// For test, you can create and send a request with the global default
 	// client, use DevMode to see all details, try and suprise :)
 	// req.DevMode()

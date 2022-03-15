@@ -1,50 +1,34 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/imroc/req/v3"
 )
 
-const upsertINSTRUCT = `
-	upsert <token> <mid> <&Message> [<slug>]
-
-	- Default slug: env.Slug
-	- Message.Body must not be empty.
-`
-
-// Message must fit message.Message
-type Message struct {
-	Title   string `json:"title,omitempty"`
-	Summary string `json:"summary,omitempty"`
-	//Banner   string   `json:"banner,omitempty"`
-	Body string `json:"body,omitempty"`
-	//Keywords []string `json:"keywords,omitempty"`
-	//Ctime    string   `json:"ctime,omitempty"`
-}
+const UPSERT_ENDPT = "/m/host"
 
 // UpsertStatus must fit message.UpsertStatus
 type UpsertStatus struct {
 	//IDx  int    `db:"idx" json:"idx"` // Required @ SELECT, e.g., @ Retrieve()
-	ID   string `db:"msg_id" json:"msg_id"`
-	Mode int    `db:"mode" json:"mode"` // 201, 204, 404
-
-	// Server-sent (@ ResponseError)
+	ID    string `db:"msg_id" json:"msg_id"`
+	Mode  int    `db:"mode" json:"mode"` // 201, 204, 404
 	Error string `db:"-" json:"error,omitempty"`
 }
 
-// Upsert a long-form, externally-hosted message.
+// Upsert a long-form, externally-hosted Message to Channel.Slug, defaulting to env.Slug.
 func (env *Env) UpsertMessage(token, mid string, msg *Message, slug ...string) *Response {
 
 	if msg.Body == "" {
-		fmt.Printf("%s\n", upsertINSTRUCT)
-		return &Response{Error: ErrHelp.Error()}
+		return &Response{Error: "message body missing"}
 	}
 	chn := slug[0]
 	if chn == "" {
 		chn = env.Slug
 	}
-	endpt := env.BaseAPI + "/m/host/" + chn + "/" + mid
+	if chn == "" {
+		return &Response{Error: "channel slug missing"}
+	}
+
+	endpt := env.BaseAPI + UPSERT_ENDPT + "/" + chn + "/" + mid
 
 	result := &UpsertStatus{}
 

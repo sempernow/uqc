@@ -82,7 +82,7 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 	// Parse the `cfg` literal. This resets any field therein from its default value
 	// to that of its matching namespaced (NS) environment variable.
 	// Pattern-match example: cfg.Assets.PathRoot <= APP_ASSETS_PATH_ROOT .
-	// CLI Override : --assets-path-root="$aPath"
+	// CLI Override : --assets-path-root=/some/other/path
 	if err := conf.Parse(osArgs[1:], NS, &cfg); err != nil {
 		switch err {
 		case conf.ErrHelpWanted:

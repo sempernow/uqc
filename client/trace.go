@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -9,35 +8,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Level : REQUEST is sans client-added latencies.
+// Levels
+// 	REQUEST is sans client-added latencies.
+// 	CLIENT includes client-added latencies.
 const (
 	REQUEST = iota + 1
 	CLIENT
 )
 
-// Accept:
-const (
-	JSON = "application/json"
-	HTML = "text/html"
-)
-
-const traceINSTRUCT = `
-	trace <url> [json|html(default)]
-
-	REQUEST (1) level is sans client-added latencies.
-`
-
 // Trace hits the declared endpoint (any) with a GET request,
 // prints response-timing info to os.Stderr, and returns response body else info.
 // Dumps body to file instead if both TraceDump flag and TraceFpath set (see Env.Client).
 // https://github.com/imroc/req#Debugging
-func (env *Env) Trace(endpt, format string) *Response {
+func (env *Env) Trace(endpt, cType string) *Response {
 
-	switch format {
+	switch cType {
 	case "json":
-		format = JSON
+		cType = JSON
 	default:
-		format = HTML
+		cType = HTML
 	}
 
 	opt := &req.DumpOptions{
@@ -64,7 +53,7 @@ func (env *Env) Trace(endpt, format string) *Response {
 
 	case REQUEST:
 		resp, err = client.R().EnableTrace().
-			SetHeader("Accept", format).
+			SetHeader("Accept", cType).
 			SetResult(&result).
 			SetError(&result).
 			Get(endpt)
@@ -72,18 +61,17 @@ func (env *Env) Trace(endpt, format string) *Response {
 	case CLIENT:
 		client.EnableTraceAll()
 		resp, err = client.R().
-			SetHeader("Accept", format).
+			SetHeader("Accept", cType).
 			Get(endpt)
 
 	default:
-		fmt.Printf("%s\n", traceINSTRUCT)
 		return &Response{Error: "trace level invalid"}
 	}
 
 	if err != nil {
 		return &Response{Error: errors.Wrap(err, "trace").Error()}
 	}
-	trace := resp.TraceInfo() // Use `resp.Request.TraceInfo()` in production; avoid struct copy.
+	trace := resp.Request.TraceInfo()
 	ghostPrint("%v\n%s\n%v\n\n", trace.Blame(), "----------", trace)
 
 	if err != nil {
@@ -102,8 +90,9 @@ func (env *Env) Trace(endpt, format string) *Response {
 	if env.TraceDump && (env.TraceFpath != "") {
 		if err := ioutil.WriteFile(env.TraceFpath, resp.Bytes(), 0644); err != nil {
 			return &Response{
-				Code: resp.StatusCode,
-				Body: errors.Wrap(err, "ERR @ dump to file: '"+env.TraceFpath+"'").Error(),
+				Code:  resp.StatusCode,
+				Body:  resp.String(),
+				Error: errors.Wrap(err, "@ ioutil.WriteFile(..) : '"+env.TraceFpath+"'").Error(),
 			}
 		}
 		return &Response{
