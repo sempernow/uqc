@@ -37,22 +37,34 @@ Each command is a function of the `client` package. So it serves as a template f
 #### `trace`
 
 ```bash
-go run ./app/cli trace https://uqrate.org/app json |jq .
+go run ./app/cli trace https://gorest.co.in/public/v2/users json |jq .
 ```
 ```bash
-:authority: uqrate.org
-:method: GET
+GET /public/v2/users HTTP/1.1
 ...
-:status: 200
+HTTP/1.1 200 OK
 ...
-the request total time is 92.8375ms, and costs 77.8638ms on tls handshake
+the request total time is 1.1144131s, and costs 575.8156ms on tls handshake
 ----------
-TotalTime         : 92.8375ms
-DNSLookupTime     : 1.9212ms
-TCPConnectTime    : 383.4µs
-TLSHandshakeTime  : 77.8638ms
-FirstResponseTime : 12.363ms
-ResponseTime      : 77.9µs
+TotalTime         : 1.1144131s
+DNSLookupTime     : 15.0618ms
+TCPConnectTime    : 250.8347ms
+TLSHandshakeTime  : 575.8156ms
+FirstResponseTime : 266.5266ms
+ResponseTime      : 6.094ms
+IsConnReused:     : false
+RemoteAddr        : 139.59.66.125:443
+
+[
+  {
+    "id": 3780,
+    "name": "Ekdant Kocchar",
+    "email": "kocchar_ekdant@hoppe-lang.name",
+    "gender": "male",
+    "status": "active"
+  },
+  ...
+]
 ...
 ```
 - Optionally dump to `APP_CLIENT_TRACE_FPATH`
@@ -74,7 +86,7 @@ go run ./app/cli \
 
 #### `token`
 
-Get a token (cryptographically-signed JWT) per uqrate-member credentials.
+Get a token (cryptographically-signed JWT) against uqrate-member credentials.
 
 ```bash
 go run ./app/cli \
@@ -120,11 +132,11 @@ Same as above, yet per [`Makefile` recipe](Makefile) configured per `makeargs` p
 #### `trace`
 
 ```bash
-export makeargs='trace https://swarm.foo/app json |jq .'
+export makeargs='trace https://gorest.co.in/public/v2/users json |jq .'
 make gorun
 ```
 ```bash
-bash make.go.run.app.sh cli trace https://swarm.foo/app json |jq .
+bash make.go.run.app.sh cli trace https://gorest.co.in/public/v2/users json |jq .
 ...
 ```
 
