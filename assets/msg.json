@@ -1,0 +1,8 @@
+{
+    "body": "Testing uqc upsert.",
+    "title": "New struct Test",
+    "summary": "Success!",
+    "categories": ["foo", "foo-bar"],
+    "keywords": ["foo bar"],
+    "uri": "/foo/bar"
+}
