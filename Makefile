@@ -13,6 +13,9 @@ menu :
 	@echo '	push  : git push -u origin master'
 	@echo '	tag   : git tag v${VER_APP}  (VER_APP)'
 	@echo '	untag : git … : remove v${VER_APP}  (VER_APP)'
+	$(INFO) 'Demo :'
+	@echo '	token  : go run ./app/cli token'
+	@echo '	upsert : go run ./app/cli upsert $$json_body $$mid $$tkn $$APP_CHANNEL_SLUG'
 
 env :
 	@env |grep APP_
