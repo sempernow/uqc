@@ -91,7 +91,8 @@ type Message struct {
 	Categories []string `json:"categories,omitempty"`
 	URI        string   `json:"uri,omitempty"`
 
-	DateCreate time.Time `db:"date_create" json:"date_create,omitempty"`
+	// DateCreate time.Time `db:"date_create" json:"date_create,omitempty"`
+	//... Not exist @ uqrate mirror
 	DateUpdate time.Time `db:"date_update" json:"date_update,omitempty"`
 }
 
