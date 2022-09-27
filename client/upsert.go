@@ -4,7 +4,7 @@ import (
 	"github.com/imroc/req/v3"
 )
 
-const UPSERT_ENDPT = "/m/upt"
+const UPSERT_ENDPT = "/m/upsert"
 
 // UpsertStatus must fit message.UpsertStatus
 type UpsertStatus struct {
