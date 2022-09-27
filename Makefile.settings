@@ -22,7 +22,7 @@ INFO    := @bash -c 'printf $(YELLOW);echo "@ $$1";printf $(RESTORE)' MESSAGE
 ##############################################################################
 # Operational Params : Reset per launch of docker swarm|stack|service up|down
 
-export VER_APP ?= 0.3.5
+export VER_APP ?= 0.3.7
 
 export MODE_DEBUG ?= true
 

@@ -90,6 +90,9 @@ type Message struct {
 	Keywords   []string `json:"keywords,omitempty"`
 	Categories []string `json:"categories,omitempty"`
 	URI        string   `json:"uri,omitempty"`
+
+	DateCreate time.Time `db:"date_create" json:"date_create,omitempty"`
+	DateUpdate time.Time `db:"date_update" json:"date_update,omitempty"`
 }
 
 // ghostPrint(..) prints the so-formatted args to os.Stderr.
