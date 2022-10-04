@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/sempernow/uqc/client"
+	"github.com/sempernow/uqc/client/wordpress"
 	"github.com/sempernow/uqc/kit/types"
 )
 
@@ -19,6 +20,12 @@ func Author(id int) string {
 	return "author name"
 }
 
+func PostsList(env *client.Env, site string) []wordpress.Post {
+
+	fetchWP(env, site+Posts)
+
+	return []wordpress.Post{}
+}
 func TagsList(tags []int) []string {
 	// Retrieve from our WP data store
 	// else fetch from WordPress site : GET /wp-json/wp/v2/tags/:id
@@ -39,8 +46,8 @@ func CatsList(cats []int) []string {
 	return c
 }
 
-func fetchWP(env *client.Env, endpt string) (string, error) {
-	rsp := env.Dump(endpt, client.JSON)
+func fetchWP(env *client.Env, url string) (string, error) {
+	rsp := env.Dump(url, client.JSON)
 	if rsp.Error != "" {
 		return "", errors.New(rsp.Error)
 	}

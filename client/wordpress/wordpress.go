@@ -11,6 +11,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/sempernow/uqc/client"
+	"github.com/sempernow/uqc/client/wordpress/wpfetch"
 )
 
 func Test(env *client.Env) {
@@ -33,17 +34,6 @@ func Posts2Msgs(j, cid string) ([]client.Message, error) {
 	return msg, nil
 }
 
-func FetchWP(env *client.Env, endpt string) (string, error) {
-	rsp := env.Dump(endpt, client.JSON)
-	// fmt.Fprintf(os.Stderr, "HTTP %d\n", rsp.Code)
-	// fmt.Fprintf(os.Stderr, "%s\n", rsp.Error)
-	// fmt.Printf("%s", rsp.Body)
-	if rsp.Error != "" {
-		return "", errors.New(rsp.Error)
-	}
-	return rsp.Body, nil
-}
-
 // ConvertPost maps a Post to a client.Message
 // having a UUIDv5 ID sourced from client.Message.ChnID (cid).
 func convertPost(post *Post, cid string) client.Message {
@@ -62,13 +52,13 @@ func convertPost(post *Post, cid string) client.Message {
 
 	if false {
 		if len(post.Categories) > 0 {
-			msg.Cats = fetch.CatsList(post.Categories)
+			msg.Cats = wpfetch.CatsList(post.Categories)
 		}
 		if len(post.Tags) > 0 {
-			msg.Tags = getTags(post.Tags)
+			msg.Tags = wpfetch.TagsList(post.Tags)
 		}
 	}
-	if author := getAuthor(post.Author); author != "" {
+	if author := wpfetch.Author(post.Author); author != "" {
 		msg.Tags = append(msg.Tags, author)
 	}
 
