@@ -59,6 +59,7 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 			Pass  string `conf:"default:aPass,noprint"`
 			Token string `conf:"default:-"`
 
+			UserAgent  string        `conf:"default:uqc/dev"`
 			Timeout    time.Duration `conf:"default:5s"`
 			TraceLevel int           `conf:"default:1"`
 			TraceDump  bool          `conf:"default:false"`
@@ -113,8 +114,8 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 			Pass:  cfg.Client.Pass,
 			Token: cfg.Client.Token,
 
+			UserAgent:  cfg.Client.UserAgent,
 			Timeout:    cfg.Client.Timeout,
-			UserAgent:  client.UserAgent,
 			TraceLevel: cfg.Client.TraceLevel,
 			TraceDump:  cfg.Client.TraceDump,
 			TraceFpath: cfg.Client.TraceFpath,

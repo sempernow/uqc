@@ -1,4 +1,4 @@
-// Package client provides an http client for accessing uqrate services.
+// Package client provides an http client of uqrate services.
 package client
 
 import (
@@ -9,7 +9,19 @@ import (
 	"github.com/ardanlabs/conf"
 )
 
-const UserAgent = "uqrate/client/v1 (https://uqrate.org)"
+// Levels
+// 	REQUEST is sans client-added latencies.
+// 	CLIENT includes client-added latencies.
+const (
+	REQUEST = iota + 1
+	CLIENT
+)
+
+// Mode
+const (
+	MODE_JSON   = 1
+	MODE_STRUCT = 2
+)
 
 // Service base
 const (
@@ -28,12 +40,14 @@ type Response struct {
 	Body  string `json:"body,omitempty"`
 	Code  int    `json:"code,omitempty"`
 	Error string `json:"error,omitempty"`
+	// Error `json:"error,omitempty"`
 }
 
-// JWT must fit response body of Token(..) request on success.
-type JWT struct {
-	Token string `json:"token,omitempty"`
-	Error string `json:"error,omitempty"`
+// TODO : Mod to this; See uqrate error response;
+// has this detailed morphadite error response which gets lost in decode.
+type Error struct {
+	Error  string   `json:"error,omitempty"`
+	Fields []string `json:"fields,omitempty"`
 }
 
 // Env is the receiver of all (exported) client functions,
@@ -51,6 +65,7 @@ type Client struct {
 	User       string        `json:"user,omitempty"`
 	Pass       string        `json:"pass,omitempty"`
 	Token      string        `json:"token,omitempty"`
+	Key        string        `json:"key,omitempty"`
 	UserAgent  string        `json:"user_agent,omitempty"`
 	Timeout    time.Duration `json:"timeout,omitempty"`
 	TraceLevel int           `json:"trace_level,omitempty"`
@@ -80,20 +95,6 @@ type Channel struct {
 
 	// Thread-root message (long-form)
 	ThreadID string `json:"thread_id,omitempty"` // Message.ID (UUID v5)
-}
-
-// Message must fit message.Message of Service.
-type Message struct {
-	Title      string   `json:"title,omitempty"`
-	Summary    string   `json:"summary,omitempty"`
-	Body       string   `json:"body,omitempty"`
-	Keywords   []string `json:"keywords,omitempty"`
-	Categories []string `json:"categories,omitempty"`
-	URI        string   `json:"uri,omitempty"`
-
-	// DateCreate time.Time `db:"date_create" json:"date_create,omitempty"`
-	//... Not exist @ uqrate mirror
-	DateUpdate time.Time `db:"date_update" json:"date_update,omitempty"`
 }
 
 // ghostPrint(..) prints the so-formatted args to os.Stderr.

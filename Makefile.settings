@@ -22,9 +22,11 @@ INFO    := @bash -c 'printf $(YELLOW);echo "@ $$1";printf $(RESTORE)' MESSAGE
 ##############################################################################
 # Operational Params : Reset per launch of docker swarm|stack|service up|down
 
-export VER_APP ?= 0.3.7
+export VER_APP ?= 0.3.8
 
 export MODE_DEBUG ?= true
+
+export TEE_LOG ?= gorun.out.json
 
 ## DNS
 export LOCALHOST := swarm.foo
@@ -49,7 +51,11 @@ endif
 ### Client : See assets/.env/app.env
 export APP_CLIENT_USER        ?= TestHostUser
 export APP_CLIENT_PASS
+
 export APP_CLIENT_TOKEN
+export APP_CLIENT_KEY
+
+export APP_CLIENT_USER_AGENT  ?= uqc/v${VER_APP} (${APP_SERVICE_BASE_URL})
 export APP_CLIENT_TIMEOUT     ?= 3s
 export APP_CLIENT_TRACE_LEVEL ?= 1
 export APP_CLIENT_TRACE_DUMP  ?= false

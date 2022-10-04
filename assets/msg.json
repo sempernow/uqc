@@ -1,6 +1,7 @@
 {
+    "mid":"1b6a7bdb-50c1-5fff-9cba-9279ca073fa5",
     "body": "Testing uqc upsert.",
-    "title": "New struct Test",
+    "title": "uqc Test",
     "summary": "Success!",
     "categories": ["foo", "foo-bar"],
     "keywords": ["foo bar"],

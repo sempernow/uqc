@@ -24,7 +24,7 @@ type Response struct {
 
 ## `cli`
 
-This commandline app is a template for building a standalone CLI (binary). Each of its commands is a function of the `client` package, so it also serves as a reference for utilizing the `client` package in other Golang packages.
+This commandline app is a template for building a standalone CLI (binary). Each of its commands is a function of the `client` package, so it also serves as __a reference for utilizing the `client` package__ in other Golang packages.
 
 ```bash
 $ go build ./app/cli
@@ -41,14 +41,15 @@ $ cli --service-base-url=https://uqrate.org \
 - Override environment at commandline:  
   `--foo-bar=newValue` overrides `APP_FOO_BAR`
 
-### `upsert`
+### `uptkn` | `upkey`
 
 ```bash
 mid=$(uuid -v 5 ns:OID /2022/09/15/uqrate-client-test)
-$ cli upsert "$body" "$mid" "$APP_CLIENT_TOKEN" $APP_CHANNEL_SLUG
+$ cli uptkn "$json" "$mid" "${tkn}" "${APP_CHANNEL_SLUG}"
+$ cli upkey "$json" "$mid" "${key}
 ```
 
-`body`
+`$json`
 
 ```json
 {

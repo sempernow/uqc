@@ -1,10 +1,13 @@
 package client
 
 import (
+	"time"
+
 	"github.com/imroc/req/v3"
 )
 
-const UPSERT_ENDPT = "/m/upsert"
+const ENDPT_UPSERT_KEY = "/key/m/upsert"
+const ENDPT_UPSERT_TKN = "/m/upsert"
 
 // UpsertStatus must fit message.UpsertStatus
 type UpsertStatus struct {
@@ -14,60 +17,151 @@ type UpsertStatus struct {
 	Error string `db:"-" json:"error,omitempty"`
 }
 
-// Upsert a long-form, externally-hosted Message to Channel.Slug, defaulting to env.Slug.
-func (env *Env) UpsertMessage(msg *Message, mid string, args ...string) *Response {
+// Message contains the payload to be decoded
+// into a message.UpsertMessage by Uqrate API.
+type Message struct {
+	ID      string   `json:"msg_id,omitempty"` //... Key NOT EXIST @ Uqrate struct
+	ChnID   string   `json:"chn_id,omitempty"`
+	Title   string   `json:"title,omitempty"`
+	Summary string   `json:"summary,omitempty"`
+	Body    string   `json:"body,omitempty"`
+	Cats    []string `json:"cats,omitempty"`
+	Tags    []string `json:"tags,omitempty"`
+	URI     string   `json:"uri,omitempty"`
 
+	// DateCreate time.Time `db:"date_create" json:"date_create,omitempty"`
+	//... Not exist @ uqrate mirror
+	DateUpdate time.Time `json:"date_update,omitempty"`
+
+	//  post_date	           post_date_gmt          post_modified          post_modified_gmt
+	//  2022-09-29 19:34:40    2022-09-29 19:34:40    2022-09-29 19:34:40    2022-09-29 19:34:40 @ New
+	//  2022-09-26 19:28:11    2022-09-26 19:28:11    2022-09-27 19:23:25    2022-09-27 19:23:25 @ Modified
+}
+
+// UpsertMsgByKey; a long-form Message  of an externally-hosted Channel.Slug,
+// per key-authenticated ($1) POST request (X-API-KEY) to its uqrate API service endpoint.
+// 	Defaults: key: env.Client.Key.
+//func (env *Env) UpsertMsgByKey(msg *Message, mid, key string) *Response {
+func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
+	var (
+		ups = UpsertStatus{}
+		rtn = Response{}
+	)
+	if key == "" {
+		key = env.Client.Key
+	}
+	if key == "" {
+		rtn.Error = "missing key"
+	}
+
+	if msg.ID == "" {
+		rtn.Error = "missing message id"
+	}
+	if msg.Title == "" {
+		rtn.Error = "missing message title"
+	}
 	if msg.Body == "" {
-		return &Response{Error: "message body missing"}
-	}
-	jwt := env.Client.Token
-	if len(args) > 0 {
-		jwt = args[0]
-	}
-	slug := env.Channel.Slug
-	if len(args) > 1 {
-		slug = args[1]
-	}
-	if jwt == "" {
-		return &Response{Error: "missing token"}
-	}
-	if slug == "" {
-		return &Response{Error: "missing channel slug"}
+		rtn.Error = "missing message body"
 	}
 
-	endpt := env.BaseAPI + UPSERT_ENDPT + "/" + slug + "/" + mid
-	// endpt = "http://swarm.foo:3000/api/v1/m/upt/TestHostSlug/1b6a7bdb-50c1-5fff-9cba-9279ca073fa5"
+	if rtn.Error != "" {
+		return &rtn
+	}
 
-	// fmt.Printf("endpt: %s\nmid: %s\nslug: %s\njwt: %s\nmsg: %v\n",
-	// 	endpt, mid, slug, jwt, types.PrettyPrint(&msg),
-	// )
-
-	result := &UpsertStatus{}
+	endpt := env.BaseAPI + ENDPT_UPSERT_KEY + "/" + msg.ID
+	msg.ID = ""
 
 	client := req.C().
 		SetUserAgent(env.UserAgent).
 		SetTimeout(env.Timeout)
 
-	resp, err := client.R().
-		SetBearerAuthToken(jwt).
-		SetResult(&result).
-		SetError(&result).
+	rsp, err := client.R().
+		SetHeader("x-api-key", key).
+		SetResult(&ups).
+		SetError(&ups).
 		SetBody(&msg).
 		Post(endpt)
 
 	if err != nil {
-		return &Response{
-			Error: err.Error(),
+		rtn.Error = err.Error()
+		return &rtn
+	}
+	rtn.Code = rsp.StatusCode
+
+	if rsp.IsError() {
+		rtn.Error = ups.Error
+		return &rtn
+	}
+	rtn.Body = ups.ID
+	return &rtn
+}
+
+// UpsertMsgByTkn; a long-form Message of an externally-hosted Channel.Slug ($2),
+// per token-authenticated ($1) POST request to its uqrate API service endpoint.
+// 	Defaults: slug: env.Channel.Slug, token: env.Client.Token.
+func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
+	var (
+		jwt  = env.Client.Token
+		slug = env.Channel.Slug
+
+		ups = UpsertStatus{}
+		rtn = Response{}
+	)
+	if len(args) > 0 {
+		if args[0] != "" {
+			jwt = args[0]
 		}
 	}
-	if resp.IsError() {
-		return &Response{
-			Code:  resp.StatusCode,
-			Error: result.Error,
+	if len(args) > 1 {
+		if args[1] != "" {
+			slug = args[1]
 		}
 	}
-	return &Response{
-		Code: resp.StatusCode,
-		Body: result.ID,
+	if jwt == "" {
+		rtn.Error = "missing token"
 	}
+	if slug == "" {
+		rtn.Error = "missing channel slug"
+	}
+
+	if msg.ID == "" {
+		rtn.Error = "missing message id"
+	}
+	if msg.Title == "" {
+		rtn.Error = "missing message title"
+	}
+	if msg.Body == "" {
+		rtn.Error = "missing message body"
+	}
+
+	if rtn.Error != "" {
+		return &rtn
+	}
+
+	endpt := env.BaseAPI + ENDPT_UPSERT_TKN + "/" + slug + "/" + msg.ID
+	msg.ID = ""
+
+	client := req.C().
+		SetUserAgent(env.UserAgent).
+		SetTimeout(env.Timeout)
+
+	rsp, err := client.R().
+		SetBearerAuthToken(jwt).
+		SetResult(&ups).
+		SetError(&ups).
+		SetBody(&msg).
+		Post(endpt)
+
+	if err != nil {
+		rtn.Error = err.Error()
+		return &rtn
+	}
+	rtn.Code = rsp.StatusCode
+
+	if rsp.IsError() {
+		rtn.Error = ups.Error
+		return &rtn
+	}
+	rtn.Body = ups.ID
+	return &rtn
 }

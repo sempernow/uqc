@@ -7,16 +7,19 @@ include Makefile.settings
 menu :
 	$(INFO) 'Test source:'
 	@echo '	test  : go test ./…'
-	$(INFO) 'Run CLI (per makeargs):'
-	@echo '	gorun  : go run ./app/cli …'
+
 	$(INFO) 'Push to repo:'
 	@echo '	push  : git push -u origin master'
 	@echo '	tag   : git tag v${VER_APP}  (VER_APP)'
 	@echo '	untag : git … : remove v${VER_APP}  (VER_APP)'
-	$(INFO) 'Demo :'
-	@echo '	token  : go run ./app/cli token'
-	@echo '	upsert : go run ./app/cli upsert $$json_body $$mid $$tkn $$APP_CHANNEL_SLUG'
 
+	$(INFO) 'Run CLI @ Demos:'
+	@echo '	token  : go run ./app/cli token'
+	@echo '	uptkn : go run ./app/cli uptkn $$json $$mid $$tkn $$APP_CHANNEL_SLUG'
+	@echo '	upkey : go run ./app/cli upkey $$json $$mid $$key'
+
+	$(INFO) 'Run CLI @ Any per $$makeargs : trace, dump, token, upttest, wpfetch:'
+	@echo '	gorun   : go run ./app/cli $$makeargs'
 env :
 	@env |grep APP_
 
@@ -55,14 +58,18 @@ tidy :
 # App [CLI] : Set `makeargs` to the command plus its options (default: env)
 
 # USAGE: 
-# ☩ export makeargs='..'
-# ☩ make gorun
+# ☩ export makeargs='cli trace https://uqrate.org/liveness'
+# ☩ make gorun |jq .
 
 gorun :
-	bash make.go.run.app.sh cli $(shell echo "$${makeargs:-env}")
+	@bash make.go.run.app.sh $${makeargs:-cli}
 
 # ☩ make APP_SERVICE_BASE_URL=https://uqrate.org goruntoken
-goruntoken :
-	bash make.go.run.app.sh token
-gorunupsert :
-	bash make.go.run.app.sh upsert
+token :
+	@bash make.go.run.app.sh token
+
+uptkn :
+	@bash make.go.run.app.sh uptkn
+
+upkey :
+	@bash make.go.run.app.sh upkey

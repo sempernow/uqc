@@ -25,13 +25,13 @@ func JSONtoStruct(j []byte, ptr interface{}) error {
 	return json.Unmarshal(j, ptr)
 }
 
-// Stringify a struct to JSON using json.Marxhal(..)
+// Stringify any struct to JSON using json.Marxhal(..)
 func Stringify(s interface{}) string {
-	b, err := json.Marshal(&s)
+	bb, err := json.Marshal(&s)
 	if err != nil {
 		return ""
 	}
-	return string(b)
+	return BytesToString(bb)
 }
 
 // PrettyPrint any struct to JSON using json.MarshalIndent(..)

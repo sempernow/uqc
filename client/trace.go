@@ -3,17 +3,10 @@ package client
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/imroc/req/v3"
 	"github.com/pkg/errors"
-)
-
-// Levels
-// 	REQUEST is sans client-added latencies.
-// 	CLIENT includes client-added latencies.
-const (
-	REQUEST = iota + 1
-	CLIENT
 )
 
 // Trace hits the declared endpoint (any) with a GET request,
@@ -22,14 +15,13 @@ const (
 // https://github.com/imroc/req#Debugging
 func (env *Env) Trace(endpt, cType string) *Response {
 
-	switch cType {
-	case "json":
-		cType = JSON
-	default:
+	if strings.ToLower(cType) == "html" {
 		cType = HTML
+	} else {
+		cType = JSON
 	}
 
-	opt := &req.DumpOptions{
+	opts := &req.DumpOptions{
 		Output:         os.Stderr,
 		RequestHeader:  true,
 		ResponseBody:   false,
@@ -39,68 +31,61 @@ func (env *Env) Trace(endpt, cType string) *Response {
 	}
 
 	var (
-		result interface{} // unncessary?
-		resp   *req.Response
-		err    error
+		err error
+		rsp *req.Response
+		rtn Response
 	)
 	client := req.C().
 		SetUserAgent(env.UserAgent).
 		SetTimeout(env.Timeout).
-		SetCommonDumpOptions(opt).
-		EnableDumpAll()
+		SetCommonDumpOptions(opts).
+		EnableDumpAll() //.EnableDebugLog()
 
 	switch env.TraceLevel {
 
 	case CLIENT:
-		client.EnableTraceAll()
-		resp, err = client.R().
+
+		rsp, err = client.EnableTraceAll().R().
 			SetHeader("Accept", cType).
 			Get(endpt)
+
 	case REQUEST:
 		fallthrough
 	default:
-		resp, err = client.R().EnableTrace().
+
+		rsp, err = client.R().EnableTrace().
 			SetHeader("Accept", cType).
-			SetResult(&result).
-			SetError(&result).
 			Get(endpt)
 	}
 
 	if err != nil {
-		return &Response{Error: errors.Wrap(err, "trace").Error()}
+		rtn.Error = errors.Wrap(err, "trace").Error()
+		return &rtn
 	}
-	trace := resp.Request.TraceInfo()
+	rtn.Code = rsp.StatusCode
+
+	trace := rsp.Request.TraceInfo()
 	ghostPrint("%v\n%s\n%v\n\n", trace.Blame(), "----------", trace)
 
-	if err != nil {
-		return &Response{
-			Error: err.Error(),
-		}
+	if rsp.IsError() {
+		rtn.Error = rsp.Status
+		return &rtn
 	}
-	if resp.IsError() {
-		return &Response{
-			Code:  resp.StatusCode,
-			Error: resp.Status,
-		}
+	if rsp.IsSuccess() {
+		rtn.Body = rsp.String()
 	}
 
-	// Dump successful response to file (env.TraceFpath), conditionally.
+	// Dump successful response to file (env.TraceFpath) conditionally per env setting.
 	if env.TraceDump && (env.TraceFpath != "") {
-		if err := ioutil.WriteFile(env.TraceFpath, resp.Bytes(), 0644); err != nil {
-			return &Response{
-				Code:  resp.StatusCode,
-				Body:  resp.String(),
-				Error: errors.Wrap(err, "@ ioutil.WriteFile(..) : '"+env.TraceFpath+"'").Error(),
-			}
-		}
-		return &Response{
-			Code: resp.StatusCode,
-			Body: "Response body dumped to: " + env.TraceFpath,
-		}
-	}
+		if err := ioutil.WriteFile(env.TraceFpath, rsp.Bytes(), 0644); err != nil {
+			rtn.Error = errors.Wrap(
+				err, "@ ioutil.WriteFile(..) : '"+env.TraceFpath+"'",
+			).Error()
 
-	return &Response{
-		Code: resp.StatusCode,
-		Body: resp.String(),
+			return &rtn
+		}
+		rtn.Body = "Response body dumped to: " + env.TraceFpath
+		return &rtn
 	}
+	return &rtn
 }

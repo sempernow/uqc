@@ -6,28 +6,49 @@ import (
 
 /******************************************************************************
 USAGE:
-		resp, err := env.Token()
+		rsp, err := env.Token()
 		if err != nil {
 			return err
 		}
-		fmt.Println(kit.Stringify(resp)) // JSON
+		fmt.Println(kit.Stringify(rsp)) // JSON
 *****************************************************************************/
 
+const TOKEN_ENDPT = "/a/token"
+
+// JWT must fit response body of Token(..) request on success.
+type JWT struct {
+	Token string `json:"token,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+
 // Token retrieves an access token (JWT) per Basic Auth request.
-func (env *Env) Token() *Response {
+func (env *Env) Token(args ...string) *Response {
 	var (
-		user   = env.Client.User
-		pass   = env.Client.Pass
-		endpt  = env.BaseAOA + "/a/token"
-		result = &JWT{}
+		user  = env.Client.User
+		pass  = env.Client.Pass
+		endpt = env.BaseAOA + TOKEN_ENDPT
+		got   = JWT{}
+		rtn   = Response{}
 	)
+	if len(args) > 0 {
+		if args[0] != "" {
+			user = args[0]
+		}
+	}
+	if len(args) > 1 {
+		if args[1] != "" {
+			pass = args[1]
+		}
+	}
+
 	client := req.C().
 		SetUserAgent(env.UserAgent).
 		SetTimeout(env.Timeout)
-	resp, err := client.R().
+
+	rsp, err := client.R().
 		SetBasicAuth(user, pass).
-		SetResult(&result).
-		SetError(&result).
+		SetResult(&got).
+		SetError(&got).
 		Get(endpt)
 
 	if err != nil {
@@ -36,14 +57,25 @@ func (env *Env) Token() *Response {
 		}
 	}
 
-	if resp.IsError() {
+	if rsp.IsError() {
 		return &Response{
-			Code:  resp.StatusCode,
-			Error: result.Error,
+			Code:  rsp.StatusCode,
+			Error: got.Error,
 		}
 	}
+
+	rtn.Code = rsp.StatusCode
+
+	if rsp.IsError() {
+		rtn.Error = rsp.Status
+		return &rtn
+	}
+	if rsp.IsSuccess() {
+		rtn.Body = rsp.String()
+	}
+
 	return &Response{
-		Code: resp.StatusCode,
-		Body: result.Token,
+		Code: rsp.StatusCode,
+		Body: got.Token,
 	}
 }
