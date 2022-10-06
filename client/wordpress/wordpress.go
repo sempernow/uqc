@@ -53,9 +53,9 @@ func SiteList(env *client.Env) []Site {
 			return sites
 		}
 		// [
-		// 	NewDiscourses
+		// 	TheWpSite.com
 		// 	Mirror
-		// 	https://NewDiscourses.com
+		// 	https://TheWpSite.com.com
 		// 	fd8bf171-5c81-4435-b3cd-3fb2d1d09f1b
 		// 	8d996155-8ec7-43c0-a506-d6a883267798
 		// ]
