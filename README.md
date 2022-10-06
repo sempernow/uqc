@@ -35,39 +35,3 @@ $ go build ./app/cli
 ```bash
 $ cli get https://jsonplaceholder.typicode.com/todos/1
 ```
-
-### `token`
-
-```bash
-$ cli --service-base-url=https://uqrate.org \
-      --client-user=$user \
-      --client-pass=$pass \
-      token
-```
-- Override environment at commandline:  
-  `--foo-bar=newValue` overrides `APP_FOO_BAR`
-
-### `uptkn` | `upkey`
-
-Upsert message by token or key
-
-```bash
-$ cli up{tkn,key} "$json" "${tkn,key}"
-```
-
-`$json`
-
-```json
-    {
-        "msg_id":"1b6a7bdb-50c1-5fff-9cba-9279ca073fa5",
-        "chn_id":"5cb6d760-37a2-47e0-8d7a-c86af9ed222f",
-        "body": "Testing uqc upsert.",
-        "title": "uqc Test",
-        "summary": "Success!",
-        "categories": ["foo", "foo-bar"],
-        "keywords": ["foo bar"],
-        "uri": "/foo/bar"
-    }
-```
-
-## &nbsp;

@@ -65,3 +65,5 @@ README.html
 make.md2html.sh
 make.perms.sh
 make.tarball.sh
+Makefile
+Makefile.settings

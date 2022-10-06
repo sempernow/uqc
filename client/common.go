@@ -117,8 +117,8 @@ func GhostPrint(format string, args ...interface{}) {
 // SetCache writes data to key file in Env.Cache folder.
 func (env *Env) SetCache(key, data string) error {
 	if key == "" || data == "" {
-		key = "ERR @ env.SetCache(..) : missing parameter(s)"
-		GhostPrint("\nkey: '%s'\ndata: '%s'\n", key, data)
+		msg := "@ env.SetCache(..) : NO DATA"
+		GhostPrint("\n%s\n  key: '%s'\n  data: '%s'\n", msg, key, data)
 		return errors.New(key)
 	}
 	err := ioutil.WriteFile(

@@ -19,28 +19,32 @@ import (
 )
 
 const DESCRIBE = `
-	env     :     PrettyPrint the environment (Env) struct.
-	get     :     Dump response body of GET to STDOUT and HTTP status to STDERR.
-	              	get $url ['html'|'json'(default)]
-	posttkn :     Dump response body of token-authenticated POST 
-	              	to STDOUT and HTTP status to STDERR.
-	postkey :     Dump response body of key-authenticated POST 
-	              	to STDOUT and HTTP status to STDERR.
-	              	postkey $url ['html'|'json'(default)]
-	trace   :     Trace/Debug any endpoint to STDERR and response body to STDOUT.
-	              	trace $url ['html'|'json'(default)]  (to file per Makefile.settings)
-	token   :     Get access token (JWT) per Basic Auth and store in cache.
-	              	token [$user $pass] |jq -Mr .body
-	key   :       Get key from token and store in cache.
-	              	key [$cid] |jq -Mr .body
-	uptkn   :     Upsert a long-form message of hosted channel using JWT authentication.
-	              	uptkn $json [$jwt [$slug]]
-	uptkey  :     Upsert a long-form message of hosted channel using API key authentication.
-	              	uptkn $json [$key]
-	wpfetch :     Fetch WordPress Posts from the declared URL 
-	              and dump JSON response body to file @ ./wp_posts.<DOMAIN>.json
-	              	wpfetch $url
-	wpupkey :     Convert and Upsert fetched posts (JSON file) of a WordPress site.
+	env         :     PrettyPrint the environment (Env) struct.
+	get         :     Dump response body of GET to STDOUT and HTTP status to STDERR.
+	                  	get $url ['html'|'json'(default)]
+	posttkn     :     Dump response body of token-authenticated POST 
+	                  	to STDOUT and HTTP status to STDERR.
+	postkey     :     Dump response body of key-authenticated POST 
+	                  	to STDOUT and HTTP status to STDERR.
+	                  	postkey $url ['html'|'json'(default)]
+	trace       :     Trace/Debug any endpoint to STDERR and response body to STDOUT.
+	                  	trace $url ['html'|'json'(default)]  (to file per Makefile.settings)
+	token       :     Get access token (JWT) per Basic Auth and store in cache.
+	                  	token [$user $pass] |jq -Mr .body
+	key         :     Get key from token and store in cache.
+	                  	key [$cid] |jq -Mr .body
+
+	upsertall   :     Upsert all @ sites.json (cache)
+
+	uptkn       :     Upsert a long-form message of hosted channel using JWT authentication.
+	                  	uptkn $json [$jwt [$slug]]
+	uptkey      :     Upsert a long-form message of hosted channel using API key authentication.
+	                  	uptkn $json [$key]
+	wpfetch     :      Fetch WordPress Posts from the declared URL 
+	                	and dump JSON response body to file @ ./wp_posts.<DOMAIN>.json
+	                	wpfetch $url
+	wpupkey     :     Convert and Upsert fetched posts (JSON file) of a WordPress site.
+
 
 	Associated environment variables : app.NewEnv(..) and Makefile.settings .
 	Command override any APP_* value : APP_FOO_BAR with --foo-bar=newVALUE .
@@ -73,13 +77,13 @@ func run() error {
 
 	switch env.Args.Num(0) {
 
-	case "load":
+	case "upsertall":
 		fname := "sites.json"
 		sites := []wordpress.Site{}
 
 		j := env.GetCache(fname)
 		if len(j) == 0 {
-			client.GhostPrint("\n=== Renewing sites cache\n")
+			client.GhostPrint("\n=== Make new sites list\n")
 			sites = wordpress.SiteList(env)
 			if err := env.SetCache(fname, convert.Stringify(sites)); err != nil {
 				return err

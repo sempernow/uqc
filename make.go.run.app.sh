@@ -14,7 +14,9 @@ export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/app.env \
 )"
 
 # echo "key : $APP_CLIENT_KEY"
-
+upsertall() {
+    go run ./app/cli upsertall
+}
 token() {
     go run ./app/cli token
 }
