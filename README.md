@@ -1,6 +1,6 @@
 # [`sempernow/uqc`](https://github.com/sempernow/uqc "GitHub")
 
-An http client and CLI (demo) for the [`uqrate`](https://uqrate.org "uqrate.org") project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req "GitHub") . 
+A *developmental* http client and CLI (demo) for the [`uqrate`](https://uqrate.org "uqrate.org") project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req "GitHub") . 
 
 ```bash
 $ go get -u github.com/sempernow/uqc
@@ -24,7 +24,7 @@ type Response struct {
 
 ## `cli`
 
-This commandline app is a template for building a standalone CLI (binary). Each of its commands is a function of the `client` package, so it also serves as __a reference for utilizing the `client` package__ in other Golang packages.
+This is the prototype standalone CLI. Each of its commands is a function of the `client` or `wordpress` packages.
 
 ```bash
 $ go build ./app/cli

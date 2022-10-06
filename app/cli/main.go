@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/sempernow/uqc/app"
-	"github.com/sempernow/uqc/app/cli/commands"
+	//"github.com/sempernow/uqc/app/cli/commands"
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/client/wordpress"
 	"github.com/sempernow/uqc/kit/convert"
@@ -43,7 +43,6 @@ const DESCRIBE = `
 	wpfetch     :      Fetch WordPress Posts from the declared URL 
 	                	and dump JSON response body to file @ ./wp_posts.<DOMAIN>.json
 	                	wpfetch $url
-	wpupkey     :     Convert and Upsert fetched posts (JSON file) of a WordPress site.
 
 
 	Associated environment variables : app.NewEnv(..) and Makefile.settings .
@@ -210,7 +209,6 @@ func run() error {
 		msg.Body = timestamp.TimeStringZulu(time.Now().UTC()) + " per ApiKey"
 		rsp := env.UpsertMsgByKey(&msg, key)
 		fmt.Printf("\n%s\n", convert.Stringify(rsp))
-
 	case "wpfetch":
 		// Fetch per WordPress site : Any endpoint : /posts, /tags, /categories, /users
 		rsp := env.Get(env.Args.Num(1), client.JSON)
@@ -223,40 +221,42 @@ func run() error {
 	// 	return errors.Wrap(err, "decoding JSON posts")
 	// }
 	// fmt.Printf("%s\n", convert.Stringify(posts))
-	case "test":
-		commands.Test(env)
 
 	case "wpuptkn":
-		// Upsert /posts of WordPress site (JSON) per JWT auth.
-		// Convert from the WordPress JSON to Messages struct
-		path := env.Args.Num(1)
-		jwt := env.Args.Num(2)
-		slug := env.Args.Num(3)
-		ownerslug := env.Args.Num(4)
-		json, _ := ioutil.ReadFile(path)
-		msgs, err := commands.Posts2Msgs(string(json), ownerslug)
+		site := wordpress.Site{
+			//URL: "https://ComicsGate.org",
+			//URL: "https://TheDuran.com",
+			HostURL: "https://TheCritic.co.uk",
+			ChnID:   "d5750f33-a12d-4719-9600-94fcee80f487",
+		}
+		wp := wordpress.NewWordPress(env, &site)
+
+		jwt := env.Args.Num(1)
+		slug := env.Args.Num(2)
+
+		msgs, err := wp.PostsToMsgs()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 		}
-		//fmt.Printf("\n%s\n", convert.Stringify(msgs))
+		// fmt.Printf("\n%s\n", convert.Stringify(msgs))
 		// fmt.Printf("\n%s\n", convert.PrettyPrint(msgs))
 		for _, msg := range msgs {
 			rsp := env.UpsertMsgByTkn(&msg, jwt, slug)
 			fmt.Printf("\n%s\n", convert.Stringify(rsp))
 		}
 	case "wpupkey":
-		// Upsert /posts of WordPress site (JSON) per API key auth.
-		// Convert from the WordPress JSON to Messages struct
-		path := env.Args.Num(1)
-		key := env.Args.Num(2)
-		cid := env.Args.Num(3)
-		json, _ := ioutil.ReadFile(path)
-		msgs, err := commands.Posts2Msgs(string(json), cid)
+		key := env.Args.Num(1)
+		site := wordpress.Site{
+			//URL: "https://ComicsGate.org",
+			//URL: "https://TheDuran.com",
+			HostURL: "https://TheCritic.co.uk",
+			ChnID:   "d5750f33-a12d-4719-9600-94fcee80f487",
+		}
+		wp := wordpress.NewWordPress(env, &site)
+		msgs, err := wp.PostsToMsgs()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 		}
-		//fmt.Printf("\n%s\n", convert.Stringify(msgs))
-		// fmt.Printf("\n%s\n", convert.PrettyPrint(msgs))
 		for _, msg := range msgs {
 			rsp := env.UpsertMsgByKey(&msg, key)
 			fmt.Printf("\n%s\n", convert.Stringify(rsp))
