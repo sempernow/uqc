@@ -30,7 +30,7 @@ This is the prototype standalone CLI. Each of its commands is a function of the 
 $ go build ./app/cli
 ```
 
-## `get`
+### `get`
 
 ```bash
 $ cli get https://jsonplaceholder.typicode.com/todos/1
