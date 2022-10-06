@@ -3,20 +3,30 @@
 #  Makefile recipes for : go run ...  
 # -----------------------------------------------------------------------------
 
-export APP_CLIENT_PASS="$(cat ./assets/.env/app.env \
+export APP_CLIENT_PASS="$(cat ${APP_ASSETS}/.env/app.env \
     |grep APP_CLIENT_PASS |awk -F '=' '{print $2}'\
 )"
+export APP_CLIENT_KEY="$(cat ${APP_ASSETS}/.env/app.env \
+    |grep APP_CLIENT_KEY |awk -F '=' '{print $2}'\
+)"
+export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/app.env \
+    |grep APP_SITES_PASS |awk -F '=' '{print $2}'\
+)"
 
+# echo "key : $APP_CLIENT_KEY"
 
 token() {
     go run ./app/cli token
 }
+key() {
+    go run ./app/cli key "$APP_CHANNEL_ID"
+}
 
 uptkn() { # UpsertMsgByTkn
     [[ $(type -t jq) ]] || { echo 'REQUIREs jq utility'; exit 0; }
-    [[ $1 ]] && json="$1" || json="$(<assets/msg.json)"
+    [[ $1 ]] && json="$1" || json="$(<${APP_ASSETS}/msg.json)"
     [[ $2 ]] && mid="$2"  || mid="$(uuid -v 5 ns:OID  /2022/09/15/uqrate-client-test)"
-    [[ $3 ]] && tkn="$3"  || tkn="$(go run ./app/cli token |jq -Mr .body)"
+    [[ $3 ]] && tkn="$3"  || tkn="$(go run ./app/cli token)"
 
     #go run ./app/cli uptkn "$json" "$mid" "${tkn}" "${APP_CHANNEL_SLUG}"
     go run ./app/cli uptkn "$json" "${tkn}" "${APP_CHANNEL_SLUG}"
@@ -24,20 +34,20 @@ uptkn() { # UpsertMsgByTkn
 
 upkey() { # UpsertMsgByKey
     [[ $(type -t jq) ]] || { echo 'REQUIREs jq utility'; exit 0; }
-    [[ $1 ]] && json="$1" || json="$(<assets/msg.json)"
-    [[ $3 ]] && key="$2"  || key="$(cat ./assets/keys/uqrate.${APP_CHANNEL_SLUG}.json |jq -Mr .key)"
+    [[ $1 ]] && json="$1" || json="$(<${APP_ASSETS}/msg.json)"
+    [[ $3 ]] && key="$2"  || key="$(cat ${APP_CACHE}/keys/key.${APP_CHANNEL_ID}.json |jq -Mr .key)"
 
-    echo "key : name: '${key%.*}'"
+    # echo "key : name: '${key%.*}'"
     go run ./app/cli upkey "$json" "${key}"
 }
 
 wpfetch() { # Fetch from a WP posts endpoint and dump JSON response to file
-    url=$1
-    fname=${url#*//}
-    fname=${fname%%/*}
-    obj=${url##*/}
-    obj=${obj%\?*}
-    go run ./app/cli wpfetch $url > assets/wp/${fname}.${obj}.json
+    url=$1              # https://wp.site/wp-json/wp/v2/posts?author=7
+    fname=${url#*//}    # wp.site/wp-json/wp/v2/posts?author=7
+    fname=${fname%%/*}  # wp.site
+    obj=${url##*/}      # posts?author=7
+    obj=${obj%\?*}      # posts
+    go run ./app/cli wpfetch $url > ${APP_ASSETS}/wp/${fname}_${obj}.json
 }
 
 wpuptkn() { 
@@ -50,17 +60,17 @@ wpuptkn() {
     [[ $2 ]] && slug="$3" || slug="${APP_CHANNEL_SLUG}"
     [[ $3 ]] && os="$4"   || os="${APP_CLIENT_USER}${APP_CHANNEL_SLUG}"
 
-    go run ./app/cli wpupkey "assets/wp/posts.${fname}.json" "$tkn" "${slug}" "$os"
+    go run ./app/cli wpupkey "${APP_ASSETS}/wp/posts.${fname}.json" "$tkn" "${slug}" "$os"
 }
 wpupkey() { 
     [[ $(type -t jq) ]] || { echo 'REQUIREs jq utility'; exit 0; }
-    export key="$(cat ./assets/keys/uqrate.${APP_CHANNEL_SLUG}.json |jq -Mr .key)"
-    export chn_id="$(cat ./assets/keys/uqrate.${APP_CHANNEL_SLUG}.json |jq -Mr .chn_id)"
+    export key="$(cat ${APP_ASSETS}/keys/uqrate.${APP_CHANNEL_SLUG}.json |jq -Mr .key)"
+    export chn_id="$(cat ${APP_ASSETS}/keys/uqrate.${APP_CHANNEL_SLUG}.json |jq -Mr .chn_id)"
 
     url=$1
     fname=${url#*//}
     fname=${fname%%/*}
-    go run ./app/cli wpupkey "assets/wp/posts.${fname}.json" "$key" "$chn_id"
+    go run ./app/cli wpupkey "${APP_ASSETS}/wp/posts.${fname}.json" "$key" "$chn_id"
 }
 
 cli() { # Any

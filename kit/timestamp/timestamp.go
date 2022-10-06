@@ -1,3 +1,4 @@
+// Package timestamp provides time/date functions.
 package timestamp
 
 import (

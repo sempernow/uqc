@@ -65,7 +65,7 @@ func (env *Env) Trace(endpt, cType string) *Response {
 	rtn.Code = rsp.StatusCode
 
 	trace := rsp.Request.TraceInfo()
-	ghostPrint("%v\n%s\n%v\n\n", trace.Blame(), "----------", trace)
+	GhostPrint("%v\n%s\n%v\n\n", trace.Blame(), "----------", trace)
 
 	if rsp.IsError() {
 		rtn.Error = rsp.Status

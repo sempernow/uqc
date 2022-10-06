@@ -1,3 +1,4 @@
+// Package bmask provides bitmask operators on its variable-aggregated type (uint64).
 package bmask
 
 import (

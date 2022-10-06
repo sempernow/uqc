@@ -9,7 +9,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/sempernow/uqc/client"
-	"github.com/sempernow/uqc/kit/types"
+	"github.com/sempernow/uqc/kit/convert"
 )
 
 func Test(env *client.Env) {
@@ -95,7 +95,7 @@ func getTags(tags []int) []string {
 	// else fetch from WordPress site : GET /wp-json/wp/v2/tags/<id>
 	k := []string{}
 	for _, tag := range tags {
-		k = append(k, types.IntToString(tag))
+		k = append(k, convert.IntToString(tag))
 	}
 	return k
 }
@@ -104,7 +104,7 @@ func getCats(cats []int) []string {
 	// else fetch from WordPress site : GET /wp-json/wp/v2/categories/<id>
 	c := []string{}
 	for _, cat := range cats {
-		c = append(c, types.IntToString(cat))
+		c = append(c, convert.IntToString(cat))
 	}
 	return c
 }

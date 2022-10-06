@@ -1,5 +1,6 @@
 {
-    "mid":"1b6a7bdb-50c1-5fff-9cba-9279ca073fa5",
+    "msg_id":"1b6a7bdb-50c1-5fff-9cba-9279ca073fa5",
+    "chn_id":"5cb6d760-37a2-47e0-8d7a-c86af9ed222f",
     "body": "Testing uqc upsert.",
     "title": "uqc Test",
     "summary": "Success!",

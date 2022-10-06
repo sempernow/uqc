@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sempernow/uqc/kit/convert"
 	"github.com/sempernow/uqc/kit/timestamp"
-	"github.com/sempernow/uqc/kit/types"
 )
 
 func TestTimeUtils(t *testing.T) {
@@ -19,14 +19,14 @@ func TestTimeUtils(t *testing.T) {
 
 	year, month, day := time.Now().Date()
 	fmt.Printf("year: %s, month: %s, day: %s\n",
-		types.IntToString(year), month.String(), types.IntToString(day),
+		convert.IntToString(year), month.String(), convert.IntToString(day),
 	)
 	tt := time.Now()
 	yr := tt.Year()  // type int
 	mo := tt.Month() // type time.Month
 	d := tt.Day()    // type int
 	fmt.Printf("year: %s, month: %s, day: %s\n",
-		types.IntToString(yr), mo.String(), types.IntToString(d),
+		convert.IntToString(yr), mo.String(), convert.IntToString(d),
 	)
 	x := time.Now()
 	l := timestamp.TimeStringLocal(x)

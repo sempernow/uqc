@@ -30,6 +30,12 @@ This commandline app is a template for building a standalone CLI (binary). Each 
 $ go build ./app/cli
 ```
 
+## `get`
+
+```bash
+$ cli get https://jsonplaceholder.typicode.com/todos/1
+```
+
 ### `token`
 
 ```bash
@@ -43,21 +49,25 @@ $ cli --service-base-url=https://uqrate.org \
 
 ### `uptkn` | `upkey`
 
+Upsert message by token or key
+
 ```bash
-mid=$(uuid -v 5 ns:OID /2022/09/15/uqrate-client-test)
-$ cli uptkn "$json" "$mid" "${tkn}" "${APP_CHANNEL_SLUG}"
-$ cli upkey "$json" "$mid" "${key}
+$ cli up{tkn,key} "$json" "${tkn,key}"
 ```
 
 `$json`
 
 ```json
-{
-	"body": "Testing uqc upsert.",
-	"title": "Uqrate Client Test",
-	"keywords": ["foo", "bar"],
-	"uri": "/2022/09/15/testing-uqc-upsert"
-}
+    {
+        "msg_id":"1b6a7bdb-50c1-5fff-9cba-9279ca073fa5",
+        "chn_id":"5cb6d760-37a2-47e0-8d7a-c86af9ed222f",
+        "body": "Testing uqc upsert.",
+        "title": "uqc Test",
+        "summary": "Success!",
+        "categories": ["foo", "foo-bar"],
+        "keywords": ["foo bar"],
+        "uri": "/foo/bar"
+    }
 ```
 
 ## &nbsp;

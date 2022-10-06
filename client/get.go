@@ -6,8 +6,9 @@ import (
 	"github.com/imroc/req/v3"
 )
 
-// Dump returns the raw HTML|JSON(default) @ Response.Body .
-func (env *Env) Dump(url, cType string) *Response {
+// Get returns the *Response of a GET.
+// 	cType : HTML or JSON (default).
+func (env *Env) Get(url, cType string) *Response {
 
 	var rtn Response
 

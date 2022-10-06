@@ -13,7 +13,7 @@ USAGE:
 		fmt.Println(kit.Stringify(rsp)) // JSON
 *****************************************************************************/
 
-const TOKEN_ENDPT = "/a/token"
+const TKN_ENDPT = "/a/token"
 
 // JWT must fit response body of Token(..) request on success.
 type JWT struct {
@@ -26,7 +26,7 @@ func (env *Env) Token(args ...string) *Response {
 	var (
 		user  = env.Client.User
 		pass  = env.Client.Pass
-		endpt = env.BaseAOA + TOKEN_ENDPT
+		endpt = env.BaseAOA + TKN_ENDPT
 		got   = JWT{}
 		rtn   = Response{}
 	)
@@ -40,7 +40,6 @@ func (env *Env) Token(args ...string) *Response {
 			pass = args[1]
 		}
 	}
-
 	client := req.C().
 		SetUserAgent(env.UserAgent).
 		SetTimeout(env.Timeout)
@@ -74,8 +73,10 @@ func (env *Env) Token(args ...string) *Response {
 		rtn.Body = rsp.String()
 	}
 
+	//GhostPrint("rtn: %s", rtn.Body)
 	return &Response{
 		Code: rsp.StatusCode,
 		Body: got.Token,
+		//Body: rtn.Body,
 	}
 }

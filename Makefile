@@ -65,11 +65,16 @@ gorun :
 	@bash make.go.run.app.sh $${makeargs:-cli}
 
 # ☩ make APP_SERVICE_BASE_URL=https://uqrate.org goruntoken
-token :
+token tkn :
 	@bash make.go.run.app.sh token
+key :
+	@bash make.go.run.app.sh key
 
 uptkn :
 	@bash make.go.run.app.sh uptkn
 
 upkey :
 	@bash make.go.run.app.sh upkey
+
+site :
+	@go run ./app/cli site

@@ -1,10 +1,10 @@
-package types_test
+package convert_test
 
 import (
 	"strconv"
 	"testing"
 
-	"github.com/sempernow/uqc/kit/types"
+	"github.com/sempernow/uqc/kit/convert"
 )
 
 // ******************************************************
@@ -26,28 +26,28 @@ func BenchmarkFormatUint(b *testing.B) {
 func BenchmarkUint64ToString(b *testing.B) {
 	// Run it b.N times
 	for n := 0; n < b.N; n++ {
-		types.Uint64ToString(i)
+		convert.Uint64ToString(i)
 	}
 }
 
 func BenchmarkToString(b *testing.B) {
 	// Run it b.N times
 	for n := 0; n < b.N; n++ {
-		types.ToString(i)
+		convert.ToString(i)
 	} //... 3x SLOWER than other 3 "ToString" funcs.
 }
 
 func BenchmarkIntToString(b *testing.B) {
 	// Run it b.N times
 	for n := 0; n < b.N; n++ {
-		types.IntToString(int(999999999999))
+		convert.IntToString(int(999999999999))
 	}
 }
 
 func BenchmarkInt64ToString(b *testing.B) {
 	// Run it b.N times
 	for n := 0; n < b.N; n++ {
-		types.Int64ToString(int64(999999999999))
+		convert.Int64ToString(int64(999999999999))
 	}
 }
 

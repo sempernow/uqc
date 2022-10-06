@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/sempernow/uqc/client"
-	"github.com/sempernow/uqc/kit/types"
+	"github.com/sempernow/uqc/kit/convert"
 
 	"github.com/ardanlabs/conf"
 	"github.com/pkg/errors"
@@ -53,11 +53,15 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 
 	var cfg struct {
 		conf.Version
-		Args   conf.Args
-		Client struct { // APP_CLIENT_*
+		Args      conf.Args
+		Assets    string   `conf:"default:assets"`
+		Cache     string   `conf:"default:assets/wp"`
+		SitesPass string   `conf:"default:aPass,noprint"`
+		Client    struct { // APP_CLIENT_*
 			User  string `conf:"default:aUser"`
 			Pass  string `conf:"default:aPass,noprint"`
 			Token string `conf:"default:-"`
+			Key   string `conf:"default:-"`
 
 			UserAgent  string        `conf:"default:uqc/dev"`
 			Timeout    time.Duration `conf:"default:5s"`
@@ -75,11 +79,12 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 			HostURL  string `conf:"default:https://blog.site"`
 			OwnerID  string `conf:"default:00000000-0000-0000-0000-000000000000"`
 			Slug     string `conf:"default:aSlug"`
+			ID       string `conf:"default:00000000-0000-0000-0000-000000000000"`
 			ThreadID string `conf:"default:00000000-0000-0000-0000-000000000000"`
 		}
 	}
 	year, _, _ := time.Now().Date()
-	cfg.Version.Desc = "© " + types.IntToString(year) + " " + Maker
+	cfg.Version.Desc = "© " + convert.IntToString(year) + " " + Maker
 	cfg.Version.SVN = SVN
 
 	// Parse the `cfg` literal. This resets any field therein from its default value
@@ -107,12 +112,16 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 	}
 
 	return &client.Env{
-		Args: cfg.Args,
-		NS:   NS,
+		Args:      cfg.Args,
+		NS:        NS,
+		Assets:    cfg.Assets,
+		Cache:     cfg.Cache,
+		SitesPass: cfg.SitesPass,
 		Client: client.Client{
 			User:  cfg.Client.User,
 			Pass:  cfg.Client.Pass,
 			Token: cfg.Client.Token,
+			Key:   cfg.Client.Key,
 
 			UserAgent:  cfg.Client.UserAgent,
 			Timeout:    cfg.Client.Timeout,
@@ -133,6 +142,7 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 			HostURL: cfg.Channel.HostURL,
 			//OwnerID:  cfg.Channel.OwnerID,
 			Slug: cfg.Channel.Slug,
+			ID:   cfg.Channel.ID,
 			//ThreadID: cfg.Channel.ThreadID,
 		},
 	}, nil

@@ -2,8 +2,12 @@
 package client
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/ardanlabs/conf"
@@ -35,6 +39,10 @@ const (
 	HTML = "text/html"
 )
 
+type CSRF struct {
+	CSRF string `json:"csrf"`
+}
+
 // Response is the return of all (exported) client function calls.
 type Response struct {
 	Body  string `json:"body,omitempty"`
@@ -53,11 +61,14 @@ type Error struct {
 // Env is the receiver of all (exported) client functions,
 // and contains all parameters defining the client environment.
 type Env struct {
-	NS      string    `json:"ns,omitempty"`
-	Args    conf.Args `json:"args,omitempty"`
-	Client  `json:"client,omitempty"`
-	Service `json:"service,omitempty"`
-	Channel `json:"channel,omitempty"`
+	Args      conf.Args `json:"args,omitempty"`
+	NS        string    `json:"ns,omitempty"`
+	Assets    string    `json:"assets,omitempty"`
+	Cache     string    `json:"cache,omitempty"`
+	SitesPass string    `json:"sites_pass,omitempty"`
+	Client    `json:"client,omitempty"`
+	Service   `json:"service,omitempty"`
+	Channel   `json:"channel,omitempty"`
 }
 
 // Client contains all request parameters.
@@ -87,6 +98,7 @@ type Service struct {
 
 // Channel regards that to which a message is upserted; at store of Service host.
 type Channel struct {
+	ID string `json:"chn_id,omitempty"` // Channel.ID
 	// host     :            <hostname>           : domain
 	// host url : <scheme>://<hostname>:<port>    : url
 	HostURL string `json:"host_url,omitempty"` // Channel.HostURL
@@ -97,9 +109,61 @@ type Channel struct {
 	ThreadID string `json:"thread_id,omitempty"` // Message.ID (UUID v5)
 }
 
-// ghostPrint(..) prints the so-formatted args to os.Stderr.
-// This is useful in any client function that both prints and returns Response.Body;
-// it preserves a clean os.Stdout to which caller may then dump the return (JSON/HTML).
-func ghostPrint(format string, args ...interface{}) {
+// GhostPrint(..) prints args per format, e.g., "want: %s\nhave: %s\n", to os.Stderr.
+func GhostPrint(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, args...)
+}
+
+// SetCache writes data to key file in Env.Cache folder.
+func (env *Env) SetCache(key, data string) error {
+	if key == "" || data == "" {
+		key = "ERR @ env.SetCache(..) : missing parameter(s)"
+		GhostPrint("\nkey: '%s'\ndata: '%s'\n", key, data)
+		return errors.New(key)
+	}
+	err := ioutil.WriteFile(
+		filepath.Join(env.Cache, key),
+		[]byte(data),
+		0664,
+	)
+	if err != nil {
+		GhostPrint("\nERR @ env.SetCache(..) : writing file: %v\n", err)
+		return err
+	}
+	fi, err := os.Stat(filepath.Join(env.Cache, key))
+	if err == nil {
+		GhostPrint("\nsize: %vKB @ file: '%s'\n", (fi.Size() / 1024), key)
+	}
+	return nil
+}
+
+// GetCache reads key file of Env.Cache folder.
+func (env *Env) GetCache(key string) []byte {
+	if key == "" {
+		GhostPrint("\nERR @ env.GetCache(..) : missing key parameter\n")
+		GhostPrint("\nkey: '%s'\n", key)
+		return []byte{}
+	}
+	bb, err := ioutil.ReadFile(filepath.Join(env.Cache, key))
+	if err != nil {
+		GhostPrint("\nERR @ env.GetCache(..) : reading file: %s\n", err)
+		return []byte{}
+	}
+	//GhostPrint("\n@ %s_CACHE : %s\n", env.NS, filepath.Join(env.Cache, key))
+	return bb
+}
+
+// GetCacheJSON reads key file of Env.Cache folder into struct of pointer.
+func (env *Env) GetCacheJSON(key string, ptr interface{}) {
+	if key == "" {
+		GhostPrint("\nERR @ env.GetCacheJSON(..) : missing key parameter\n")
+	}
+	bb, err := ioutil.ReadFile(filepath.Join(env.Cache, key))
+	if err != nil {
+		GhostPrint("\nERR @ env.GetCacheJSON(..) : reading file: %s\n", err)
+	}
+	if err := json.Unmarshal(bb, &ptr); err != nil {
+		GhostPrint("\nERR @ env.GetCacheJSON(..) : decoding JSON: %s\n", err)
+
+	}
 }

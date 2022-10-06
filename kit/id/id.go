@@ -1,12 +1,13 @@
+// Package id provides a variety of unique-id generator functions.
 package id
 
 import (
 	"bytes"
+	crnd "crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base32"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -16,14 +17,45 @@ import (
 	"time"
 
 	//uuip "github.com/pborman/uuid"
+	"github.com/sempernow/uqc/kit/convert"
 	"github.com/sempernow/uqc/kit/timestamp"
-	"github.com/sempernow/uqc/kit/types"
 
-	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
+
+	"github.com/gofrs/uuid" // FORKED from github.com/satori
 
 	"github.com/oklog/ulid"
 	"lukechampine.com/blake3"
 )
+
+// Base32 Alphabets : https://en.wikipedia.org/wiki/Base32
+const (
+	Base32Hex = "0123456789ABCDEFGHIJKLMNOPQRSTUV" // All upper case; indistinguishables (0-O, I-L-1).
+	RFC4648   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567" // All upper case; more distinquishable; sans 0(O), 1(I), 8(B).
+	WordSafe  = "23456789CFGHJMPQRVWXcfghjmpqrvwx" // No (bad) words.
+	Zbase32   = "ybndrfg8ejkmcpqxot1uwisza345h769" // Easy to read.
+)
+
+// Base32 returns a base32-encoded UUID v4 sans padding;
+// a unique string of 26 alphanumeric characters based on alphabet.
+// 	Alphabets: Base32Hex, RFC4648 (default), WordSafe, Zbase32.
+func Base32(alphabet ...string) string {
+	var a string
+	if len(alphabet) == 0 {
+		a = RFC4648
+	} else {
+		a = alphabet[0]
+	}
+	var encoding = base32.NewEncoding(a)
+	var bb bytes.Buffer
+	encoder := base32.NewEncoder(encoding, &bb)
+	x := uuid.Must(uuid.NewV4())
+	encoder.Write(x.Bytes())
+	encoder.Close()
+	bb.Truncate(26)
+
+	return bb.String()
+}
 
 // UUIDv5 returns the static ID per namespace (DNS, OID, URL or x500)
 // and name, both case-insensitive.
@@ -62,11 +94,11 @@ func SumBlake3_256(i interface{}) string {
 	case int:
 		xx = blake3.Sum256([]byte(strconv.Itoa(x)))
 	case int64:
-		xx = blake3.Sum256(types.Int64ToBytes(x))
+		xx = blake3.Sum256(convert.Int64ToBytes(x))
 	case uint64:
-		xx = blake3.Sum256([]byte(types.Uint64ToString(x)))
+		xx = blake3.Sum256([]byte(convert.Uint64ToString(x)))
 	default:
-		return types.BytesToString(xx[:])
+		return convert.BytesToString(xx[:])
 	}
 	return hex.EncodeToString(xx[:])
 }
@@ -82,11 +114,11 @@ func SumBlake3_512(i interface{}) string {
 	case int:
 		xx = blake3.Sum512([]byte(strconv.Itoa(x)))
 	case int64:
-		xx = blake3.Sum512(types.Int64ToBytes(x))
+		xx = blake3.Sum512(convert.Int64ToBytes(x))
 	case uint64:
-		xx = blake3.Sum512([]byte(types.Uint64ToString(x)))
+		xx = blake3.Sum512([]byte(convert.Uint64ToString(x)))
 	default:
-		return types.BytesToString(xx[:])
+		return convert.BytesToString(xx[:])
 	}
 	return hex.EncodeToString(xx[:])
 }
@@ -102,17 +134,17 @@ func SumSHA1(i interface{}) string {
 	case int:
 		xx = sha1.Sum([]byte(strconv.Itoa(x)))
 	case int64:
-		xx = sha1.Sum(types.Int64ToBytes(x))
+		xx = sha1.Sum(convert.Int64ToBytes(x))
 	case uint64:
-		xx = sha1.Sum([]byte(types.Uint64ToString(x)))
+		xx = sha1.Sum([]byte(convert.Uint64ToString(x)))
 	case *os.File:
 		h := sha1.New()
 		if _, err := io.Copy(h, x); err != nil {
-			return types.BytesToString(xx[:])
+			return convert.BytesToString(xx[:])
 		}
 		return fmt.Sprintf("%x", h.Sum(nil))
 	default:
-		return types.BytesToString(xx[:])
+		return convert.BytesToString(xx[:])
 	}
 	return hex.EncodeToString(xx[:])
 }
@@ -128,34 +160,19 @@ func SumSHA256(i interface{}) string {
 	case int:
 		xx = sha256.Sum256([]byte(strconv.Itoa(x)))
 	case int64:
-		xx = sha256.Sum256(types.Int64ToBytes(x))
+		xx = sha256.Sum256(convert.Int64ToBytes(x))
 	case uint64:
-		xx = sha256.Sum256([]byte(types.Uint64ToString(x)))
+		xx = sha256.Sum256([]byte(convert.Uint64ToString(x)))
 	case *os.File:
 		h := sha256.New()
 		if _, err := io.Copy(h, x); err != nil {
-			return types.BytesToString(xx[:])
+			return convert.BytesToString(xx[:])
 		}
 		return fmt.Sprintf("%x", h.Sum(nil))
 	default:
-		return types.BytesToString(xx[:])
+		return convert.BytesToString(xx[:])
 	}
 	return hex.EncodeToString(xx[:])
-}
-
-// NewID is a base32 encoded UUID v4 GUID sans padding.
-// It is a 26 character alpha-num [a-z0-9] string.
-// https://sourcegraph.com/github.com/mattermost/mattermost-server/-/blob/model/utils.go#L201
-func NewID() string {
-	// Define the alphabet
-	var encoding = base32.NewEncoding("s6dwh85iz12qmkueap4cgfbr7nv3xytj")
-	var b bytes.Buffer
-	encoder := base32.NewEncoder(encoding, &b)
-	x := uuid.Must(uuid.NewV4())
-	encoder.Write(x.Bytes())
-	encoder.Close()
-	b.Truncate(26)
-	return b.String()
 }
 
 // // Etag : NNN-NNN.part1.part2.part3....
@@ -200,4 +217,72 @@ func DoULID() {
 }
 func debug(msgs interface{}) {
 	fmt.Println(msgs)
+}
+
+// Nonce of size bytes.
+func Nonce(size int) ([]byte, error) {
+	bb := make([]byte, size)
+	_, err := io.ReadFull(crnd.Reader, bb)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "Nonce : source of randomness unavailable")
+	}
+	return bb, nil
+}
+
+// XOR ...
+func XOR(input, key string) (output string) {
+	var str strings.Builder
+
+	for i := 0; i < len(input); i++ {
+		str.WriteString(string(input[i] ^ key[i%len(key)]))
+	}
+	return str.String()
+}
+
+// EncodeSecret per XOR with nonce bisected for use as both key and padding.
+func EncodeSecret(s, nonce string) (string, error) {
+	n := nonce[0:(len(nonce)/2 - len(nonce)%2)]
+	p := nonce[len(n):]
+	//delta := (len(n) - len(s) - 1)
+	delta := (len(n) - len(s))
+	xx := (len(n) - (delta / 2) - (delta % 2))
+	pad := p[0:(delta / 2)]
+	//bb, err := XORbytes([]byte(s+"|"+pad), []byte(n[0:xx]))
+	bb, err := XORbytes([]byte(s+pad), []byte(n[0:xx]))
+	if err != nil {
+		return "", err
+	}
+	return convert.BytesToString(bb), nil
+}
+
+// DecodeSecret per XOR with its nonce key/pad.
+func DecodeSecret(secret, nonce string) (string, error) {
+	bb, err := XORbytes([]byte(secret), []byte(nonce[0:len(secret)]))
+	if err != nil {
+		return "", err
+	}
+	//return strings.Split(BytesToString(bb), "|")[0], nil
+	return convert.BytesToString(bb), nil
+}
+
+// XORbytes performs XOR (encrypt/decrypt) of two equal-sized byte slices.
+// https://sourcegraph.com/github.com/hashicorp/vault/-/blob/helper/xor/xor.go#L8
+func XORbytes(a, b []byte) ([]byte, error) {
+	if len(a) != len(b) {
+		return nil, fmt.Errorf("Slice LENGTHs differ : [%d]a vs. [%d]b", len(a), len(b))
+	}
+	buf := make([]byte, len(a))
+	for i := range a {
+		buf[i] = a[i] ^ b[i]
+	}
+	return buf, nil
+}
+
+// XORstrings performs XOR (encrypt/decrypt) on input against a nonce.
+// https://kylewbanks.com/blog/xor-encryption-using-go
+func XORstrings(input, nonce string) (output string) {
+	for i := 0; i < len(input); i++ {
+		output += string(input[i] ^ nonce[i%len(nonce)])
+	}
+	return output
 }

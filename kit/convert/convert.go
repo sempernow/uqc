@@ -1,4 +1,5 @@
-package types
+// Package convert provides type-conversion functions.
+package convert
 
 import (
 	"bytes"
@@ -36,8 +37,8 @@ func Stringify(s interface{}) string {
 
 // PrettyPrint any struct to JSON using json.MarshalIndent(..)
 func PrettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return BytesToString(s)
+	bb, _ := json.MarshalIndent(i, "", "\t")
+	return BytesToString(bb)
 }
 
 // ToJSON converts a struct to a bytes.Buffer

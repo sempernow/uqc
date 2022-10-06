@@ -11,10 +11,145 @@ import (
 	"testing"
 
 	"github.com/sempernow/uqc/kit/id"
+	"github.com/sempernow/uqc/kit/str"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid" // FORKED from github.com/satori
 	"lukechampine.com/blake3"
 )
+
+func TestOBA(t *testing.T) {
+	//id.XOR("", "")
+	//str.Reverse("")
+	t.Skip()
+	var u uuid.UUID
+	u, _ = uuid.NewV4()
+	_na := sha512.Sum512(u.Bytes())
+	u, _ = uuid.NewV4()
+	_nb := sha512.Sum512(u.Bytes())
+
+	na := hex.EncodeToString(_na[:])
+	nb := hex.EncodeToString(_nb[:])
+
+	// t.Log(na) // 128 ch
+	// n, _ := web.Nonce(100)
+	// t.Log(n)
+	// t.Log(id.Base32UUID())
+	// return
+
+	email := "foo@bar.com"
+	pass := "1234"
+
+	email = id.XOR(email, str.Reverse(na))
+	pass = id.XOR(pass, id.XOR(na, str.Reverse(nb)))
+
+	t.Log("email", hex.EncodeToString([]byte(email)))
+	t.Log("pass", hex.EncodeToString([]byte(pass)))
+
+	email = id.XOR(email, str.Reverse(na))
+	pass = id.XOR(pass, id.XOR(na, str.Reverse(nb)))
+
+	t.Log(email, pass)
+
+	//t.Fail()
+}
+
+// ******************************************************
+// go test -count=1 -benchmem -bench=EncodeSecret ./kit
+// ******************************************************
+
+func BenchmarkEncodeSecret(b *testing.B) {
+	// Run it b.N times
+	secret := id.SumSHA256("a")
+	nonce := id.SumSHA256("b")
+	//x, _ := id.DecodeSecret(secret[:], nonce)
+
+	bb, _ := id.XORbytes([]byte(secret), []byte(nonce[0:len(secret)]))
+	fmt.Println("hex:", hex.EncodeToString(bb))
+
+	for n := 0; n < b.N; n++ {
+		bb, _ := id.XORbytes([]byte(secret), []byte(nonce[0:len(secret)]))
+		hex.EncodeToString(bb)
+	}
+} // BenchmarkEncodeSecret-4   	 5881406	       194 ns/op	     192 B/op	       3 allocs/op
+
+func BenchmarkOBA(b *testing.B) {
+	var u uuid.UUID
+	u, _ = uuid.NewV4()
+	_na := sha512.Sum512(u.Bytes())
+	u, _ = uuid.NewV4()
+	_nb := sha512.Sum512(u.Bytes())
+
+	na := hex.EncodeToString(_na[:])
+	nb := hex.EncodeToString(_nb[:])
+
+	email := "foo@bar.com"
+	pass := "1234"
+
+	email = id.XOR(email, str.Reverse(na))
+	pass = id.XOR(pass, id.XOR(na, str.Reverse(nb)))
+
+	for n := 0; n < b.N; n++ {
+		email = id.XOR(email, str.Reverse(na))
+		pass = id.XOR(pass, id.XOR(na, str.Reverse(nb)))
+	}
+
+} // BenchmarkOBA-4   	   83332	     14496 ns/op	    1592 B/op	      12 allocs/op
+
+func BenchmarkXORbytes(b *testing.B) {
+	// Run it b.N times
+	var u uuid.UUID
+	u, _ = uuid.NewV4()
+	x := u.Bytes()
+	u, _ = uuid.NewV4()
+	y := u.Bytes()
+	for n := 0; n < b.N; n++ {
+		bb, _ := id.XORbytes(x, y)
+		hex.EncodeToString(bb)
+	}
+} //BenchmarkXORbytes-4   	18176034	        63.4 ns/op	      48 B/op	       1 allocs/op
+// BenchmarkXORbytes-4   	 5940584	       219 ns/op	     208 B/op	       3 allocs/op
+
+func BenchmarkXORbytesOnStrings(b *testing.B) {
+	// Run it b.N times
+	var u uuid.UUID
+	u, _ = uuid.NewV4()
+	x := u.Bytes()
+	u, _ = uuid.NewV4()
+	y := u.Bytes()
+	bb, _ := id.XORbytes(x, y)
+	fmt.Println(hex.EncodeToString(bb))
+
+	for n := 0; n < b.N; n++ {
+		//id.XORbytes([]byte(x), []byte(y))
+		bb, _ := id.XORbytes([]byte(x), []byte(y))
+		hex.EncodeToString(bb)
+	}
+} // BenchmarkXORbytesOnStrings-4   	 3680936	       313 ns/op	     304 B/op	       5 allocs/op
+
+func BenchmarkXOR(b *testing.B) {
+	// Run it b.N times
+	var u uuid.UUID
+	u, _ = uuid.NewV4()
+	x := u.String()
+	u, _ = uuid.NewV4()
+	y := u.String()
+	for n := 0; n < b.N; n++ {
+		id.XOR(x, y)
+	}
+} // go test -bench=XOR -count=1 ./kit
+// BenchmarkXOR-4   	 1300089	       919 ns/op	     120 B/op	       4 allocs/op
+
+func BenchmarkXORstrings(b *testing.B) {
+	// Run it b.N times
+	var u uuid.UUID
+	u, _ = uuid.NewV4()
+	x := u.String()
+	u, _ = uuid.NewV4()
+	y := u.String()
+	for n := 0; n < b.N; n++ {
+		id.XORstrings(x, y)
+	}
+} //BenchmarkXORstrings-4   	  461542	      2383 ns/op	     864 B/op	      35 allocs/op
 
 func TestSumSHA1(t *testing.T) {
 	t.Skip()
@@ -46,13 +181,16 @@ func BenchmarkULID(b *testing.B) {
 	}
 } // BenchmarkULID-4   	   63837	     18485 ns/op	    9696 B/op	       6 allocs/p
 
-func BenchmarkNewID(b *testing.B) {
+func BenchmarkBase32(b *testing.B) {
 	// Run it b.N times
-	//fmt.Println(id.NewID()) // wbj36uter1d8i8wazuwjwqaevm
+	//fmt.Println(id.Base32())
+	//fmt.Println(id.Base32(id.Zbase32))
+	//fmt.Println(id.Base32(id.WordSafe))
+	//fmt.Println(id.Base32(id.Base32Hex))
 	for n := 0; n < b.N; n++ {
-		id.NewID() //.String()
+		id.Base32() //.String()
 	}
-} // BenchmarkNewID-4   	  857222	      1199 ns/op	    1648 B/op	       7 allocs/op
+} // BenchmarkBase32-4   	  857222	      1199 ns/op	    1648 B/op	       7 allocs/op
 
 func BenchmarkSHA256(b *testing.B) {
 	// Run it b.N times
@@ -117,7 +255,7 @@ func BenchmarkBlake3512(b *testing.B) {
 func BenchmarkNewUUID(b *testing.B) {
 	// Run it b.N times
 	for n := 0; n < b.N; n++ {
-		uuid.NewV4() //.String()
+		uuid.NewV4()
 	}
 } // BenchmarkNewUUID-4   	 3045514	       393 ns/op	      64 B/op	       2 allocs/o
 

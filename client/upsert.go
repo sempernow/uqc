@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/imroc/req/v3"
+	"github.com/sempernow/uqc/kit/convert"
 )
 
 const ENDPT_UPSERT_KEY = "/key/m/upsert"
@@ -44,11 +45,14 @@ type Message struct {
 //func (env *Env) UpsertMsgByKey(msg *Message, mid, key string) *Response {
 func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
 	var (
-		ups = UpsertStatus{}
+		got = UpsertStatus{}
 		rtn = Response{}
 	)
 	if key == "" {
-		key = env.Client.Key
+		k := ApiKey{}
+		env.GetCacheJSON("/keys/key."+msg.ChnID+".json", &k)
+		key = k.Key
+		// GhostPrint("chn_id: %s\nkey:%s\n", msg.ChnID, key)
 	}
 	if key == "" {
 		rtn.Error = "missing key"
@@ -70,6 +74,7 @@ func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
 
 	endpt := env.BaseAPI + ENDPT_UPSERT_KEY + "/" + msg.ID
 	msg.ID = ""
+	msg.ChnID = ""
 
 	client := req.C().
 		SetUserAgent(env.UserAgent).
@@ -77,8 +82,8 @@ func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
 
 	rsp, err := client.R().
 		SetHeader("x-api-key", key).
-		SetResult(&ups).
-		SetError(&ups).
+		SetResult(&got).
+		SetError(&got).
 		SetBody(&msg).
 		Post(endpt)
 
@@ -89,10 +94,10 @@ func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
 	rtn.Code = rsp.StatusCode
 
 	if rsp.IsError() {
-		rtn.Error = ups.Error
+		rtn.Error = got.Error
 		return &rtn
 	}
-	rtn.Body = ups.ID
+	rtn.Body = got.ID
 	return &rtn
 }
 
@@ -101,12 +106,14 @@ func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
 // 	Defaults: slug: env.Channel.Slug, token: env.Client.Token.
 func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
 	var (
-		jwt  = env.Client.Token
+		jwt = convert.BytesToString(env.GetCache("/keys/tkn." + env.Client.User))
+
 		slug = env.Channel.Slug
 
-		ups = UpsertStatus{}
+		got = UpsertStatus{}
 		rtn = Response{}
 	)
+
 	if len(args) > 0 {
 		if args[0] != "" {
 			jwt = args[0]
@@ -137,9 +144,9 @@ func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
 	if rtn.Error != "" {
 		return &rtn
 	}
-
 	endpt := env.BaseAPI + ENDPT_UPSERT_TKN + "/" + slug + "/" + msg.ID
 	msg.ID = ""
+	msg.ChnID = ""
 
 	client := req.C().
 		SetUserAgent(env.UserAgent).
@@ -147,8 +154,8 @@ func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
 
 	rsp, err := client.R().
 		SetBearerAuthToken(jwt).
-		SetResult(&ups).
-		SetError(&ups).
+		SetResult(&got).
+		SetError(&got).
 		SetBody(&msg).
 		Post(endpt)
 
@@ -159,9 +166,9 @@ func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
 	rtn.Code = rsp.StatusCode
 
 	if rsp.IsError() {
-		rtn.Error = ups.Error
+		rtn.Error = got.Error
 		return &rtn
 	}
-	rtn.Body = ups.ID
+	rtn.Body = got.ID
 	return &rtn
 }

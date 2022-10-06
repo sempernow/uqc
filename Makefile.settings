@@ -47,14 +47,20 @@ else
   export APP_CHANNEL_HOST_URL ?= http://127.0.0.1:5558
   #export APP_CHANNEL_HOST_URL ?= https://wp.swarm.foo
 endif
+## APP : cache
+#export APP_CACHE    ?= assets/wp/cache
+export APP_ASSETS      ?= assets
+export APP_CACHE       ?= assets/wp/cache
+export APP_SITES_PASS
 ## APP : channel / thread / hosted-comments params
 ### Client : See assets/.env/app.env
-export APP_CLIENT_USER        ?= TestHostUser
+export APP_CLIENT_USER  ?= TestHostUser
 export APP_CLIENT_PASS
 
 export APP_CLIENT_TOKEN
 export APP_CLIENT_KEY
 
+#export APP_CLIENT_USER_AGENT  ?= uqc/v${VER_APP} (${APP_SERVICE_BASE_URL})
 export APP_CLIENT_USER_AGENT  ?= uqc/v${VER_APP} (${APP_SERVICE_BASE_URL})
 export APP_CLIENT_TIMEOUT     ?= 3s
 export APP_CLIENT_TRACE_LEVEL ?= 1
@@ -62,7 +68,8 @@ export APP_CLIENT_TRACE_DUMP  ?= false
 export APP_CLIENT_TRACE_FPATH ?= client.trace
 
 ### Channel
-export APP_CHANNEL_SLUG     ?= TestHostSlug
+export APP_CHANNEL_ID   ?= 5cb6d760-37a2-47e0-8d7a-c86af9ed222f
+export APP_CHANNEL_SLUG ?= TestHostSlug
 # export APP_CHANNEL_HOST_URL ?= http://127.0.0.1:5500
 # export APP_CHANNEL_HOST_URL ?= https://${APP_CHANNEL_HOST}
 # export APP_CHANNEL_OWNER_ID ?=
