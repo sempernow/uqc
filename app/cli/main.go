@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/sempernow/uqc/app"
+	"github.com/sempernow/uqc/app/cli/commands"
+
 	//"github.com/sempernow/uqc/app/cli/commands"
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/client/wordpress"
@@ -34,7 +36,16 @@ const DESCRIBE = `
 	key         :     Get key from token and store in cache.
 	                  	key [$cid] |jq -Mr .body
 
-	upsertall   :     Upsert all @ sites.json (cache)
+	siteslist   :     Make a new sites list from CSV sources list (env.SiteListSrc).
+
+	updateusers :     Update all users of sites list.
+
+	upsertchns  :     Upsert all channels of sites list.
+	
+	upsertposts :     Upsert all posts of all sites on sites list.
+	
+	purgecachetkns
+	purgecacheposts
 
 	uptkn       :     Upsert a long-form message of hosted channel using JWT authentication.
 	                  	uptkn $json [$jwt [$slug]]
@@ -43,7 +54,6 @@ const DESCRIBE = `
 	wpfetch     :      Fetch WordPress Posts from the declared URL 
 	                	and dump JSON response body to file @ ./wp_posts.<DOMAIN>.json
 	                	wpfetch $url
-
 
 	Associated environment variables : app.NewEnv(..) and Makefile.settings .
 	Command override any APP_* value : APP_FOO_BAR with --foo-bar=newVALUE .
@@ -76,25 +86,29 @@ func run() error {
 
 	switch env.Args.Num(0) {
 
-	case "upsertall":
-		fname := "sites.json"
-		sites := []wordpress.Site{}
-
-		j := env.GetCache(fname)
-		if len(j) == 0 {
-			client.GhostPrint("\n=== Make new sites list\n")
-			sites = wordpress.SiteList(env)
-			if err := env.SetCache(fname, convert.Stringify(sites)); err != nil {
-				return err
-			}
-			j = env.GetCache(fname)
-		}
-
-		client.GhostPrint("\n=== Upserting sites\n")
-		if err := json.Unmarshal(j, &sites); err != nil {
+	case "env":
+		if err := env.PrettyPrint(); err != nil {
 			return err
 		}
-		wordpress.UpsertSites(env, sites)
+
+	case "siteslist":
+		fname := wordpress.CacheSitesList
+		client.GhostPrint("\n=== Make new sites list\n")
+		sites := wordpress.MakeSitesList(env)
+		if err := env.SetCache(fname, convert.Stringify(sites)); err != nil {
+			return err
+		}
+
+	case "updateusers":
+		commands.UpdateUsers(env)
+	case "upsertchns":
+		commands.UpsertChannels(env)
+	case "upsertposts":
+		commands.UpsertPosts(env)
+	case "purgecachetkns":
+		commands.PurgeCacheTkns(env)
+	case "purgecacheposts":
+		commands.PurgeCachePosts(env)
 
 	case "site":
 		site := wordpress.Site{
@@ -106,18 +120,13 @@ func run() error {
 		wp := wordpress.NewWordPress(env, &site)
 		wp.SitePosts()
 		// fmt.Println(convert.PrettyPrint(site))
-		mm, err := wp.PostsToMsgs()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", err)
+		msgs := wp.PostsToMsgs()
+		if len(msgs) == 0 {
+			fmt.Fprintf(os.Stderr, "WARN : NO MESSAGES @ %s", err)
 		}
 		//fmt.Printf("%s", convert.Stringify(mm))
 		path := env.Cache + "/" + "TheCritic.co.uk_msgs.json"
-		ioutil.WriteFile(path, []byte(convert.Stringify(mm)), 0664)
-
-	case "env":
-		if err := env.PrettyPrint(); err != nil {
-			return err
-		}
+		ioutil.WriteFile(path, []byte(convert.Stringify(msgs)), 0664)
 
 	case "trace":
 		endpt := env.Args.Num(1)
@@ -234,12 +243,11 @@ func run() error {
 		jwt := env.Args.Num(1)
 		slug := env.Args.Num(2)
 
-		msgs, err := wp.PostsToMsgs()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
+		msgs := wp.PostsToMsgs()
+		if len(msgs) == 0 {
+			fmt.Fprintf(os.Stderr, "WARN : NO MESSAGES @ %s", err)
 		}
-		// fmt.Printf("\n%s\n", convert.Stringify(msgs))
-		// fmt.Printf("\n%s\n", convert.PrettyPrint(msgs))
+
 		for _, msg := range msgs {
 			rsp := env.UpsertMsgByTkn(&msg, jwt, slug)
 			fmt.Printf("\n%s\n", convert.Stringify(rsp))
@@ -253,10 +261,12 @@ func run() error {
 			ChnID:   "d5750f33-a12d-4719-9600-94fcee80f487",
 		}
 		wp := wordpress.NewWordPress(env, &site)
-		msgs, err := wp.PostsToMsgs()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
+
+		msgs := wp.PostsToMsgs()
+		if len(msgs) == 0 {
+			fmt.Fprintf(os.Stderr, "WARN : NO MESSAGES @ %s", err)
 		}
+
 		for _, msg := range msgs {
 			rsp := env.UpsertMsgByKey(&msg, key)
 			fmt.Printf("\n%s\n", convert.Stringify(rsp))

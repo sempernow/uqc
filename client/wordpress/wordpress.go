@@ -1,14 +1,13 @@
-// Package wordpress provides access to the WordPress REST API,
-// transforming JSON response bodies of relevant endpoints into []client.Message .
+// Package wordpress handles WordPress and Uqrate REST APIs
+// for processing []wordpress.Post into []client.Message,
+// its Uqrate mirror, and handling a list of such sites.
 package wordpress
 
 import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +20,7 @@ import (
 	"github.com/sempernow/uqc/kit/str"
 )
 
+// NewWordPress contains app environment and per-site configuration.
 func NewWordPress(env *client.Env, site *Site) *WP {
 	return &WP{
 		Env:  env,
@@ -28,17 +28,22 @@ func NewWordPress(env *client.Env, site *Site) *WP {
 	}
 }
 
-// SiteList creates []Sites from a CSV file (host_channels.csv).
-// Those values are are the export of an SQL query (hosts_channels.sql)
-// for site-host records; uqrate users, each having an associated channel.
-func SiteList(env *client.Env) []Site {
+// MakeSitesList creates []Sites from a CSV file (SiteListSrc).
+// Those values are the export of an SQL query (hosts_channels.sql)
+// for relevant records (users and channels) in Uqrate data store.
+func MakeSitesList(env *client.Env) []Site {
+
 	sites := []Site{}
-	bb, err := ioutil.ReadFile(filepath.Join(env.Assets, "wp", "host_channels.csv"))
+
+	// Open the sites-list CSV file
+	bb, err := os.ReadFile(filepath.Join(env.Assets, "wp", env.SiteListSrc))
 	if err != nil {
-		sites[0].Error = err.Error()
+		client.GhostPrint("\nERR @ os.ReadFile(..) : %s\n", err.Error())
 		return sites
 	}
 	r := csv.NewReader(bytes.NewReader(bb))
+
+	// Append each CSV record to sites list.
 	for {
 		cc, err := r.Read()
 		if err == io.EOF {
@@ -52,125 +57,151 @@ func SiteList(env *client.Env) []Site {
 			sites[0].Error = errors.New("malformed CSV : too few fields").Error()
 			return sites
 		}
-		// [
-		// 	TheWpSite.com
-		// 	Mirror
-		// 	https://TheWpSite.com.com
-		// 	fd8bf171-5c81-4435-b3cd-3fb2d1d09f1b
-		// 	8d996155-8ec7-43c0-a506-d6a883267798
-		// ]
-
-		sites = append(sites, Site{
+		if cc[1] == "slug" {
+			continue
+		}
+		// Get additional site params dynamically and merge with those from CSV.
+		wp := NewWordPress(env, &Site{HostURL: cc[2]})
+		wp.Site = &Site{
 			UserHandle: cc[0],
 			ChnSlug:    cc[1],
 			HostURL:    cc[2],
 			OwnerID:    cc[3],
 			ChnID:      cc[4],
-		})
+		}
+		wp.SiteGot()
+
+		sites = append(sites, *wp.Site)
 	}
 	return sites
 }
 
-// UpsertSites converts and upserts all Posts of each site in []Site list.
-func UpsertSites(env *client.Env, sites []Site) {
-	env.Channel.Slug = "Mirror"
-	env.Client.Pass = env.SitesPass
-
-	var (
-		wp    *WP
-		msgs  []client.Message
-		rsp   *client.Response
-		fname string
-		err   error
-	)
-	for i, site := range sites {
-		if site.ChnSlug == "slug" {
-			continue
+// GetSitesList retrieves []Sites list from its cache (JSON)
+// if exist, else makes and caches anew.
+func GetSitesList(env *client.Env) []Site {
+	sites := []Site{}
+	j := env.GetCache(CacheSitesList)
+	if len(j) == 0 {
+		client.GhostPrint("\n=== Make new sites list\n")
+		sites = MakeSitesList(env)
+		if err := env.SetCache(CacheSitesList, convert.Stringify(sites)); err != nil {
+			client.GhostPrint("\nERR @ setting cache\n")
+			return sites
 		}
+		j = env.GetCache(CacheSitesList)
+	}
+	if err := json.Unmarshal(j, &sites); err != nil {
+		client.GhostPrint("\nERR @ unmarshalling json\n")
+		return sites
+	}
+	return sites
+}
 
-		fmt.Printf("%d : '%s'\n", i, site.UserHandle)
-		wp = NewWordPress(env, &site)
-		wp.SitePosts()
-		msgs, err = wp.PostsToMsgs()
-		if err != nil {
-			client.GhostPrint("\nERR @ PostsToMsgs: %s : %s\n", site.UserHandle, err.Error())
-			continue
-		}
-		env.SetCache("msgs_"+site.UserHandle+".json", convert.Stringify(msgs))
+// SiteGot retrieves dynamic fields of Site from a site,
+// and merges it into existing site record (wp.Site) by reference.
+func (wp WP) SiteGot() {
 
-		// Get authorization for upsert of this user's channel
-		env.Client.User = site.UserHandle
-		rsp = env.Token()
-		fname = "/keys/tkn." + site.UserHandle
-		if err := env.SetCache(fname, rsp.Body); err != nil {
-			client.GhostPrint("\nERR @ Token: %s : %s\n", site.UserHandle, err.Error())
-			continue
-		}
+	j, err := wp.getWP(SiteURI)
 
-		for _, msg := range msgs {
-			rsp := env.UpsertMsgByTkn(&msg)
-			fmt.Printf("\nupsert messages @ %s : %s\n", site.UserHandle, convert.Stringify(rsp))
-		}
+	if err != nil {
+		wp.Site.Error = err.Error()
+		return
+	}
+	if j == "" {
+		wp.Site.Error = "GET returned nothing"
+		return
+	}
+	if err := json.Unmarshal([]byte(j), &wp.Site); err != nil {
+		wp.Site.Error = err.Error()
+		client.GhostPrint("\nERR @ Unmarshal : %s\n", err.Error())
 	}
 }
 
-// SitePosts retrieves the WordPress-normalized []Post from a Site.
+// SitePosts retrieves wp.Site.Posts; the WordPress-normalized []Post list from a Site.
 func (wp WP) SitePosts() {
 	j, err := wp.getWP(PostsURI)
 	if err != nil {
 		wp.Site.Error = err.Error()
+		return
 	}
+	if j == "" {
+		wp.Site.Error = "GET returned nothing"
+		return
+	}
+
 	if err := json.Unmarshal([]byte(j), &wp.Site.Posts); err != nil {
 		wp.Site.Error = err.Error()
+		client.GhostPrint("\nERR @ Unmarshal : %s\n", err.Error())
 	}
 }
 
-// getWP retrieves cached response (JSON); fetches only on miss.
-func (wp WP) getWP(uri string) (string, error) {
-	// First try cache.
-	url := wp.Site.HostURL + uri
-	path := filepath.Join(wp.Env.Cache, urlToFname(url))
-	jj, miss := ioutil.ReadFile(path)
-	if miss != nil {
-		fmt.Fprintf(os.Stderr, "Fetch @ cache miss: %s\npath: %s\n", url, path)
-
-		if strings.Contains(uri, wp.Site.Status.Object) && wp.Site.Status.Code > 299 {
-			return "", errors.New("site status: " + convert.IntToString(wp.Site.Status.Code))
+// GetTkn retrieves JWT for env.Client.User; get from cache; fetch on miss.
+func (wp WP) GetTkn() string {
+	key := CacheKeyTknPrefix + wp.Env.Client.User
+	bb := wp.Env.GetCache(key)
+	if len(bb) == 0 {
+		client.GhostPrint("INFO : cache miss @ %s\n", key)
+		rsp := wp.Env.Token()
+		if rsp.Code != 200 {
+			client.GhostPrint("\nERR : Token(..) %s : %s\n", wp.Env.Client.User, rsp.Error)
+			return ""
 		}
+		if err := wp.Env.SetCache(key, rsp.Body); err != nil {
+			client.GhostPrint("\nERR : GetTkn: %s : %s\n", wp.Env.Client.User, err.Error())
+			return ""
+		}
+		return rsp.Body
+	}
+	return convert.BytesToString(bb)
+}
 
+// getWP retrieves response (JSON) of a WordPress API endpoint; get from cache; fetch on miss.
+func (wp WP) getWP(uri string) (string, error) {
+	url := wp.Site.HostURL + uri
+	key := urlToFname(url)
+
+	// First try cache.
+	bb := wp.Env.GetCache(key)
+	if len(bb) == 0 {
+		client.GhostPrint("INFO : cache miss @ %s\n", key)
+
+		// Hit the site softly
 		rsp := wp.Env.Get(url, client.JSON)
 		time.Sleep(time.Millisecond * 300)
-
 		wp.Site.Status.Object = uri
 		wp.Site.Status.Code = rsp.Code
+
 		if rsp.Error != "" {
-			// Write regardless to prevent recurring fetch on fail
-			ioutil.WriteFile(path, []byte(""), 0664)
+			// Write regardless to prevent future fetches
+			wp.Env.SetCache(key, "")
 			return "", errors.New(rsp.Error)
 		}
-		ioutil.WriteFile(path, []byte(rsp.Body), 0664)
+		wp.Env.SetCache(key, rsp.Body)
+
 		return rsp.Body, nil
 	}
-	return convert.BytesToString(jj), nil
+	return convert.BytesToString(bb), nil
 }
 
-// Posts2Msgs denormalizes a []Post into a []client.Message of a Uqrate Channel.
-func (wp WP) PostsToMsgs() ([]client.Message, error) {
+// Posts2Msgs denormalizes a WordPress post into a Uqrate message.
+func (wp WP) PostsToMsgs() []client.Message {
 	list := []client.Message{}
 	for _, post := range wp.Site.Posts {
 		list = append(list, wp.PostToMsg(&post))
 	}
-	return list, nil
+	return list
 }
 
-// Posts2Msgs denormalizes a *Post into a client.Message of a Uqrate Channel.
-// The message ID is a UUID v5 of OID namespace; name is concat of channel ID and message URI.
+// Posts2Msgs denormalizes a *Post into a client.Message,
+// retrieving the various WordPress objects (referenced at Post subkeys)
+// as needed to populate Message keys (.Cats, .Tags).
+// Message.ID is a static UUID (v5) per Message.ChnID namespace and Message.URI name.
 func (wp WP) PostToMsg(post *Post) client.Message {
 	msg := client.Message{}
 
 	msg.ChnID = wp.Site.ChnID
 	msg.URI = linkToURI(post.Link)
-	msg.ID = uuid.NewV5(uuid.NamespaceOID, (msg.ChnID + msg.URI)).String()
+	msg.ID = uuid.NewV5(uuid.Must(uuid.FromString(msg.ChnID)), msg.URI).String()
 
 	msg.Title = post.Title.Rendered
 	msg.Body = post.Content.Rendered
@@ -188,22 +219,36 @@ func (wp WP) PostToMsg(post *Post) client.Message {
 		}
 	}
 	// Add the author's name to the list of tags for this message.
-	uri := filepath.Join(AuthorsURI, convert.IntToString(post.Author))
+	uri := appendToURL(AuthorsURI, convert.IntToString(post.Author))
 	if author := wp.objName(uri); author != "" {
 		if !strings.Contains(author, "s") {
 			msg.Tags = append(msg.Tags, author)
 		}
 	}
 
-	makeValid(msg.Cats)
-	makeValid(msg.Tags)
+	sanitize(msg.Cats)
+	sanitize(msg.Tags)
 
+	// Recover the post timestamp
 	msg.DateUpdate = asRFC3339(post.ModifiedGMT)
+	if msg.DateUpdate.IsZero() {
+		msg.DateUpdate = asRFC3339(post.Modified)
+	}
+	if msg.DateUpdate.IsZero() {
+		msg.DateUpdate = asRFC3339(post.DateGMT)
+	}
+	if msg.DateUpdate.IsZero() {
+		msg.DateUpdate = asRFC3339(post.Date)
+	}
+	if msg.DateUpdate.IsZero() {
+		msg.DateUpdate = time.Now().UTC()
+	}
 
 	return msg
 }
 
-func makeValid(names []string) {
+// sanitize each name of list.
+func sanitize(names []string) {
 	for i, name := range names {
 		names[i] = str.CleanAlphaNum(name, 35)
 	}
@@ -214,6 +259,8 @@ type object struct {
 	Name string
 }
 
+// objName retrieves the name referenced (by ID) in a WordPress Post,
+// per object type (.Author, .Categories, .Tags), from its (API) URI.
 func (wp WP) objName(uri string) string {
 	j, err := wp.getWP(uri)
 	if err != nil {
@@ -226,8 +273,12 @@ func (wp WP) objName(uri string) string {
 	return o.Name
 }
 
+// objNameList retrieves the list of names referenced (by ID) in a WordPress Post,
+// per object type (.Author, .Categories, .Tags), by its reference list, from its (API) URI.
 func (wp WP) objNameList(uri string, want []int) []string {
+
 	j, err := wp.getWP(uri)
+
 	if err != nil {
 		return []string{}
 	}
@@ -237,8 +288,8 @@ func (wp WP) objNameList(uri string, want []int) []string {
 	}
 	var (
 		names []string
-		got   bool
 		miss  []int
+		got   bool
 	)
 	// Match id:name
 	for _, id := range want {
@@ -251,6 +302,7 @@ func (wp WP) objNameList(uri string, want []int) []string {
 				got = true
 			}
 		}
+
 		if !got {
 			miss = append(miss, id)
 		}
@@ -258,28 +310,66 @@ func (wp WP) objNameList(uri string, want []int) []string {
 	}
 	// If any want are missing, then get per id
 	if len(miss) > 0 {
+		client.GhostPrint("\nname(s) miss (%d) @ uri: %s\n", len(miss), uri)
+		static := uri
 		for _, id := range miss {
-			if name := wp.objName(uri + "/" + convert.IntToString(id)); name != "" {
+			uri = appendToURL(uri, convert.IntToString(id))
+
+			if name := wp.objName(uri); name != "" {
 				names = append(names, name)
 			}
-			time.Sleep(time.Millisecond * 500)
+			uri = static
 		}
 	}
 	return names
 }
 
+// appendToURL(..) de/re/constructs URL as necessary to append a slug (a).
+//
+//	"../foo/bar?x=b,c&d=7" + a => "../foo/bar/a?x=b,c&d=7"
+//	"../foo/bar"           + a => "../foo/bar/a"
+//	"../foo/bar/"          + a => "../foo/bar/a/"
+func appendToURL(url, a string) string {
+	ss := strings.Split(url, "?")
+
+	if len(ss) == 2 {
+		url = ss[0] + "/" + a
+		url = url + "?" + ss[1]
+	}
+
+	if len(ss) == 1 {
+		if url[len(url)-1:] == "/" {
+			url = url + a + "/"
+		} else {
+			url = url + "/" + a
+		}
+	}
+	return url
+}
+
 // urlToFname converts url to rtn (cache fname), e.g.,
-// 	url : "https://TheWpSite.com/wp-json/wp/v2/posts?author=7"
-// 	rtn : "TheWpSite.com_posts.json"
-// 	url : "https://TheWpSite.com/wp-json/wp/v2/users/7"
-// 	rtn : "TheWpSite.com_users.7.json"
+//
+//	url : "https://TheWpSite.com/wp-json/wp/v2/posts?author=7"
+//	rtn : "TheWpSite.com_posts.json"
+//	url : "https://TheWpSite.com/wp-json/wp/v2/users/7"
+//	rtn : "TheWpSite.com_users.7.json"
 func urlToFname(url string) string {
 	site := fqdn(url)
-	obj := strings.Split(url, "wp-json/wp/v2")[1]
+	var obj, fname string
+	if strings.Contains(url, "wp-json/wp/v2") {
+		obj = strings.Split(url, "wp-json/wp/v2")[1]
+	} else {
+		if strings.Contains(url, "wp-json/") {
+			obj = strings.Split(url, "wp-json/")[1]
+		}
+	}
 	obj = strings.Split(obj, "?")[0]
 	ss := strings.Split(obj, "/")
-
-	fname := site + "_"
+	if len(ss) > 1 {
+		fname = site + "_"
+	} else {
+		fname = site + "."
+	}
 	for _, s := range ss {
 		if s != "" {
 			fname += s + "."
@@ -288,8 +378,8 @@ func urlToFname(url string) string {
 	return fname + "json"
 }
 
-// 	url : "https://TheWpSite.com/wp-json/wp/v2/posts?author=7"
-// 	rtn : "TheWpSite.com"
+// url : "https://TheWpSite.com/wp-json/wp/v2/posts?author=7"
+// rtn : "TheWpSite.com"
 func fqdn(url string) string {
 	ss := strings.Split(url, "//")
 	fname := ss[0]

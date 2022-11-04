@@ -5,8 +5,8 @@ import (
 	"github.com/sempernow/uqc/kit/convert"
 )
 
-// PostByKey makes POST request with header: `X-API-KEY: <KEY>`
-func (env *Env) PostByKey(key, url string, data interface{}) *Response {
+// PutByKey makes PUT request with header: `X-API-KEY: <KEY>`
+func (env *Env) PutByKey(key, url string, data interface{}) *Response {
 	var (
 		ups = UpsertStatus{}
 		rtn = Response{}
@@ -34,7 +34,7 @@ func (env *Env) PostByKey(key, url string, data interface{}) *Response {
 		SetResult(&ups).
 		SetError(&ups).
 		SetBody(&data).
-		Post(url)
+		Put(url)
 
 	if err != nil {
 		rtn.Error = err.Error()
@@ -50,8 +50,8 @@ func (env *Env) PostByKey(key, url string, data interface{}) *Response {
 	return &rtn
 }
 
-// PostByTkn makes a POST request with header: `Authorization: Bearer <TKN>`
-func (env *Env) PostByTkn(tkn, url string, data interface{}) *Response {
+// PutByTkn makes a PUT request with header: `Authorization: Bearer <TKN>`
+func (env *Env) PutByTkn(tkn, url string, data interface{}) *Response {
 	var (
 		ups = UpsertStatus{}
 		rtn = Response{}
@@ -77,7 +77,7 @@ func (env *Env) PostByTkn(tkn, url string, data interface{}) *Response {
 		SetResult(&ups).
 		SetError(&ups).
 		SetBody(&data).
-		Post(url)
+		Put(url)
 
 	if err != nil {
 		rtn.Error = err.Error()

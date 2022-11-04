@@ -53,11 +53,13 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 
 	var cfg struct {
 		conf.Version
-		Args      conf.Args
-		Assets    string   `conf:"default:assets"`
-		Cache     string   `conf:"default:assets/wp"`
-		SitesPass string   `conf:"default:aPass,noprint"`
-		Client    struct { // APP_CLIENT_*
+		Args        conf.Args
+		Assets      string `conf:"default:assets"`
+		Cache       string `conf:"default:assets/wp"`
+		SitesPass   string `conf:"default:aPass,noprint"`
+		SiteListSrc string `conf:"default:host_channels.csv"`
+
+		Client struct { // APP_CLIENT_*
 			User  string `conf:"default:aUser"`
 			Pass  string `conf:"default:aPass,noprint"`
 			Token string `conf:"default:-"`
@@ -112,11 +114,12 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 	}
 
 	return &client.Env{
-		Args:      cfg.Args,
-		NS:        NS,
-		Assets:    cfg.Assets,
-		Cache:     cfg.Cache,
-		SitesPass: cfg.SitesPass,
+		Args:        cfg.Args,
+		NS:          NS,
+		Assets:      cfg.Assets,
+		Cache:       cfg.Cache,
+		SitesPass:   cfg.SitesPass,
+		SiteListSrc: cfg.SiteListSrc,
 		Client: client.Client{
 			User:  cfg.Client.User,
 			Pass:  cfg.Client.Pass,

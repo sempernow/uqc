@@ -1,4 +1,4 @@
-// Package id provides a variety of unique-id generator functions.
+// Package id provides encoding functions for id generation, nonces, and such.
 package id
 
 import (
@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	//uuip "github.com/pborman/uuid"
 	"github.com/sempernow/uqc/kit/convert"
 	"github.com/sempernow/uqc/kit/timestamp"
 
 	"github.com/pkg/errors"
 
-	"github.com/gofrs/uuid" // FORKED from github.com/satori
+	"github.com/gofrs/uuid"
+	//uuip "github.com/pborman/uuid"
 
 	"github.com/oklog/ulid"
 	"lukechampine.com/blake3"
@@ -77,7 +77,7 @@ func UUIDv5(space, name string) (string, error) {
 		ns = uuid.NamespaceX500
 	default:
 		return "", errors.New(
-			"missing or bad NAMESPACE (dns, oid, url or x500)",
+			"missing or bad NAMESPACE [dns, oid, url, x500]",
 		)
 	}
 	return uuid.NewV5(ns, strings.ToLower(name)).String(), nil

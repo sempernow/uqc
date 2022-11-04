@@ -14,14 +14,31 @@ export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/app.env \
 )"
 
 # echo "key : $APP_CLIENT_KEY"
-upsertall() {
-    go run ./app/cli upsertall
+siteslist() {
+    go run ./app/cli siteslist
+}
+updateusers() {
+    go run ./app/cli updateusers
+}
+upsertchns() {
+    go run ./app/cli upsertchns
+}
+upsertposts() {
+    go run ./app/cli upsertposts
 }
 token() {
     go run ./app/cli token
 }
 key() {
     go run ./app/cli key "$APP_CHANNEL_ID"
+}
+purgecachetkns() {
+    go run ./app/cli purgecachetkns 
+    #find "${APP_CACHE:-assets/wp/cache}/keys" -iname 'tkn.*' -exec rm {} \;
+}
+purgecacheposts() {
+    go run ./app/cli purgecacheposts
+    #find "${APP_CACHE:-assets/wp/cache}" -iname '*_posts.json' -exec rm {} \;
 }
 
 uptkn() { # UpsertMsgByTkn

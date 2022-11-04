@@ -22,6 +22,8 @@ type JWT struct {
 }
 
 // Token retrieves an access token (JWT) per Basic Auth request.
+//
+//	Defaults: user (args[0]): Env.Client.User, pass (args[1]): Env.Client.Pass
 func (env *Env) Token(args ...string) *Response {
 	var (
 		user  = env.Client.User

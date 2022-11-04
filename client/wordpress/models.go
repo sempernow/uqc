@@ -2,6 +2,12 @@ package wordpress
 
 import "github.com/sempernow/uqc/client"
 
+const (
+	CacheKeyTknPrefix = "keys/tkn."
+	CacheSitesList    = "_sites.json"
+)
+const DateZeroWP = "1970-01-01T00:00:00"
+
 // WP contains a WordPress site configuration
 type WP struct {
 	Env     *client.Env
@@ -19,6 +25,13 @@ type Site struct {
 	Posts      []Post `json:"posts,omitempty"`
 	Error      string `json:"error,omitempty"`
 	Status     `json:"status,omitempty"`
+
+	// Endpoint : /wp-json
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Home        string `json:"home,omitempty"`
+	GMTOffset   int    `json:"gmt_offset,omitempty"`
 }
 
 type Status struct {
@@ -27,10 +40,11 @@ type Status struct {
 }
 
 const (
-	PostsURI   = "/wp-json/wp/v2/posts"
-	TagsURI    = "/wp-json/wp/v2/tags?per_page=50&_fields=id,name,slug"
-	CatsURI    = "/wp-json/wp/v2/categories?per_page=50&_fields=id,name,slug"
-	AuthorsURI = "/wp-json/wp/v2/users?_fields=id,name,slug,avatar_urls.96"
+	SiteURI    = "/wp-json/?_fields=name,description,url,home,gmt_offset"
+	PostsURI   = "/wp-json/wp/v2/posts?_fields=id,date,date_gmt,link,modified,modified_gmt,slug,GUID,title,content,excerpt,author,categories,tags,comment_status"
+	TagsURI    = "/wp-json/wp/v2/tags?_fields=id,name,slug,count&per_page=100"
+	CatsURI    = "/wp-json/wp/v2/categories?_fields=id,name,slug,count&per_page=100"
+	AuthorsURI = "/wp-json/wp/v2/users?_fields=id,name,slug,avatar_urls&per_page=100"
 )
 
 // Post contains a subset of keys from its WordPress
@@ -38,7 +52,9 @@ const (
 // https://developer.wordpress.org/rest-api/reference/posts/
 type Post struct {
 	ID          int      `json:"id,omitempty"`
+	Date        string   `json:"date,omitempty"`         // @ New
 	DateGMT     string   `json:"date_gmt,omitempty"`     // @ New
+	Modified    string   `json:"modified,omitempty"`     // @ Edit
 	ModifiedGMT string   `json:"modified_gmt,omitempty"` // @ Edit
 	Link        string   `json:"link,omitempty"`         // https://base.com/2022/09/title-string
 	Slug        string   `json:"slug,omitempty"`         // /title-string
