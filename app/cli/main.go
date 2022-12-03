@@ -45,7 +45,7 @@ const DESCRIBE = `
 	upsertposts :     Upsert all posts of all sites on sites list.
 	
 	purgecachetkns
-	purgecacheposts
+	purgecacheposts (*_posts.json, *_msgs.json)
 
 	uptkn       :     Upsert a long-form message of hosted channel using JWT authentication.
 	                  	uptkn $json [$jwt [$slug]]
@@ -177,6 +177,7 @@ func run() error {
 		if err := env.SetCache(fname, rsp.Body); err == nil {
 			fmt.Printf("%s", env.GetCache(fname))
 		}
+		fmt.Printf("%#v", rsp)
 	case "key":
 		cid := env.Args.Num(1)
 		rsp := env.PatchKey(cid)

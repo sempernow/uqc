@@ -42,6 +42,7 @@ func (env *Env) Token(args ...string) *Response {
 			pass = args[1]
 		}
 	}
+
 	client := req.C().
 		SetUserAgent(env.UserAgent).
 		SetTimeout(env.Timeout)

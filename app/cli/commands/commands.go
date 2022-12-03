@@ -136,6 +136,8 @@ func PurgeCachePosts(env *client.Env) {
 // UpsertPosts converts []Post into []client.Message of all sites in []Site list,
 // upserting the Uqrate messages to their associated channel (mirror) per site.
 func UpsertPosts(env *client.Env) {
+	PurgeCacheTkns(env)
+	PurgeCachePosts(env)
 	sites := wordpress.GetSitesList(env)
 	env.Channel.Slug = "Mirror"
 	env.Client.Pass = env.SitesPass
