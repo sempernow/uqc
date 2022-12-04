@@ -68,3 +68,6 @@ make.perms.sh
 make.tarball.sh
 Makefile
 Makefile.settings
+
+assets/
+cache/
