@@ -36,13 +36,16 @@ const DESCRIBE = `
 	key         :     Get key from token and store in cache.
 	                  	key [$cid] |jq -Mr .body
 
-	siteslist   :     Make a new sites list from CSV sources list (env.SiteListSrc).
+	siteslist   :     Make a new sites list from CSV sources list (env.SitesListCSV).
 
 	updateusers :     Update all users of sites list.
 
 	upsertchns  :     Upsert all channels of sites list.
 	
 	upsertposts :     Upsert all posts of all sites on sites list.
+	
+	upsertpostschron : Repeatedly run upsertposts command every x hours 
+	                   	upsertpostschron $hours
 	
 	purgecachetkns
 	purgecacheposts (*_posts.json, *_msgs.json)
@@ -90,9 +93,11 @@ func run() error {
 		if err := env.PrettyPrint(); err != nil {
 			return err
 		}
+	case "upsertpostschron":
+		commands.UpsertPostsChron(env, convert.ToInt(env.Args.Num(1)))
 
 	case "siteslist":
-		fname := wordpress.CacheSitesList
+		fname := env.SitesListJSON
 		client.GhostPrint("\n=== Make new sites list\n")
 		sites := wordpress.MakeSitesList(env)
 		if err := env.SetCache(fname, convert.Stringify(sites)); err != nil {
@@ -173,7 +178,7 @@ func run() error {
 			fmt.Fprintf(os.Stderr, "\nMissing user parameter\n")
 			return nil
 		}
-		fname := "/keys/tkn." + user
+		fname := client.CacheKeyTknPrefix + user
 		if err := env.SetCache(fname, rsp.Body); err == nil {
 			fmt.Printf("%s", env.GetCache(fname))
 		}
@@ -181,7 +186,7 @@ func run() error {
 	case "key":
 		cid := env.Args.Num(1)
 		rsp := env.PatchKey(cid)
-		fname := "/keys/key." + cid + ".json"
+		fname := client.CacheKeyTknPrefix + cid + ".json"
 		if rsp.Error != "" {
 			fmt.Fprintf(os.Stderr, "%s\n", rsp.Error)
 		} else {

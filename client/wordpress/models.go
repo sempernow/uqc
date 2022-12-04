@@ -2,10 +2,6 @@ package wordpress
 
 import "github.com/sempernow/uqc/client"
 
-const (
-	CacheKeyTknPrefix = "keys/tkn."
-	CacheSitesList    = "_sites.json"
-)
 const DateZeroWP = "1970-01-01T00:00:00"
 
 // WP contains a WordPress site configuration

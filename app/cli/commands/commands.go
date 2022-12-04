@@ -4,10 +4,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/client/wordpress"
 	"github.com/sempernow/uqc/kit/convert"
+)
+
+const (
+	SUFFIX_POSTS = "_posts.json"
+	SUFFIX_MSGS  = "_msgs.json"
 )
 
 // UpsertChannels of sites list with values therein.
@@ -46,6 +52,11 @@ func UpdateUsers(env *client.Env) {
 	// All sites mirrored hereby share common password
 	env.Client.Pass = env.SitesPass
 
+	var (
+		avatar = "-avatar.webp"
+		banner = "-banner.webp"
+	)
+
 	for _, site := range sites {
 		wp := wordpress.NewWordPress(env, &site)
 		env.Client.User = site.UserHandle
@@ -55,26 +66,24 @@ func UpdateUsers(env *client.Env) {
 		}
 
 		// Get/Set avatar and banner
-		var (
-			avatar = "-avatar.webp"
-			banner = "-banner.webp"
-		)
+
 		if _, err := os.ReadFile(
-			filepath.Join(env.Assets, "wp", "assets", "media", "avatars", (site.UserHandle + avatar)),
+			filepath.Join(env.Assets, "media", "avatars", (site.UserHandle + avatar)),
 		); err != nil {
 			avatar = "wordpress" + avatar
 		} else {
 			avatar = site.UserHandle + avatar
 		}
 		if _, err := os.ReadFile(
-			filepath.Join(env.Assets, "wp", "assets", "media", "banners", (site.UserHandle + banner)),
+			filepath.Join(env.Assets, "media", "banners", (site.UserHandle + banner)),
 		); err != nil {
-			banner = "uqrate-banner.webp"
+			banner = "uqrate" + banner
 		} else {
 			banner = site.UserHandle + banner
 		}
 
 		// Set payload
+
 		user := client.User{
 			Display: site.Name,
 			About:   site.Description,
@@ -98,13 +107,13 @@ func UpdateUsers(env *client.Env) {
 	}
 }
 
-// PurgeCacheTkns removes tkn.* cache.
+// PurgeCacheTkns removes token cache.
 func PurgeCacheTkns(env *client.Env) {
-	client.GhostPrint("\nDelete Tokens (tkn.*) @ %s\n", env.Cache)
+	client.GhostPrint("\nDelete Tokens ("+client.CacheKeyTknPrefix+"*) @ %s\n", env.Cache)
 	sites := wordpress.GetSitesList(env)
 	for _, site := range sites {
-		fname := "tkn." + site.UserHandle
-		if err := os.Remove(filepath.Join(env.Cache, "keys", fname)); err != nil {
+		fname := client.CacheKeyTknPrefix + site.UserHandle
+		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
 			//client.GhostPrint("\nERR @ os.Remove : %v\n", err)
 		} else {
 			client.GhostPrint("\nDEL @ %s\n", fname)
@@ -112,19 +121,19 @@ func PurgeCacheTkns(env *client.Env) {
 	}
 }
 
-// PurgeCachePosts removes *_posts.json and *_msgs.json cache.
+// PurgeCachePosts removes posts and messages cache.
 func PurgeCachePosts(env *client.Env) {
-	client.GhostPrint("\nDelete Posts and Messages Cache : *{_posts,_msgs}.json : @ %s\n", env.Cache)
+	client.GhostPrint("\nDelete Posts and Messages Cache : @ %s\n", env.Cache)
 	sites := wordpress.GetSitesList(env)
 	for _, site := range sites {
 		domain := strings.Split(site.HostURL, "//")[1]
-		fname := domain + "_posts.json"
+		fname := domain + SUFFIX_POSTS
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
 			//client.GhostPrint("\nERR @ os.Remove : %v\n", err)
 		} else {
 			client.GhostPrint("\nDEL @ %s\n", fname)
 		}
-		fname = domain + "_msgs.json"
+		fname = domain + SUFFIX_MSGS
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
 			//client.GhostPrint("\nERR @ os.Remove : %v\n", err)
 		} else {
@@ -181,9 +190,16 @@ func UpsertPosts(env *client.Env) {
 		}
 
 		domain := strings.Split(site.HostURL, "//")[1]
-		if err := env.SetCache(domain+"_msgs.json", convert.Stringify(msgs)); err != nil {
-			client.GhostPrint("\nERR : setting *_msgs.json cache : %s : %s\n", site.UserHandle, err.Error())
-			//continue
+		if err := env.SetCache(domain+SUFFIX_MSGS, convert.Stringify(msgs)); err != nil {
+			client.GhostPrint("\nERR : setting *"+SUFFIX_MSGS+" cache : %s : %s\n", site.UserHandle, err.Error())
 		}
+	}
+}
+
+// UpssertPostsChron repeatedly runs the UpsertPosts task repeatedly per hours, endlessly.
+func UpsertPostsChron(env *client.Env, hours int) {
+	for {
+		UpsertPosts(env)
+		time.Sleep(time.Duration(hours) * time.Hour)
 	}
 }

@@ -3,13 +3,16 @@
 #  Makefile recipes for : go run ...  
 # -----------------------------------------------------------------------------
 
-export APP_CLIENT_PASS="$(cat ${APP_ASSETS}/.env/app.env \
+export APP_ASSETS=${PATH_HOST_ROOT}/assets
+export APP_CACHE=${PATH_HOST_ROOT}/cache
+
+export APP_CLIENT_PASS="$(cat ${APP_ASSETS}/.env/app.${APP_SERVICE_HOST}.env \
     |grep APP_CLIENT_PASS |awk -F '=' '{print $2}'\
 )"
-export APP_CLIENT_KEY="$(cat ${APP_ASSETS}/.env/app.env \
+export APP_CLIENT_KEY="$(cat ${APP_ASSETS}/.env/app.${APP_SERVICE_HOST}.env \
     |grep APP_CLIENT_KEY |awk -F '=' '{print $2}'\
 )"
-export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/app.env \
+export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/app.${APP_SERVICE_HOST}.env \
     |grep APP_SITES_PASS |awk -F '=' '{print $2}'\
 )"
 
@@ -34,11 +37,11 @@ key() {
 }
 purgecachetkns() {
     go run ./app/cli purgecachetkns 
-    #find "${APP_CACHE:-assets/wp/cache}/keys" -iname 'tkn.*' -exec rm {} \;
+    #find "${APP_CACHE:-cache}" -iname 'tkn.*' -exec rm {} \;
 }
 purgecacheposts() {
     go run ./app/cli purgecacheposts
-    #find "${APP_CACHE:-assets/wp/cache}" -iname '*_posts.json' -exec rm {} \;
+    #find "${APP_CACHE:-cache}" -iname '*_posts.json' -exec rm {} \;
 }
 
 uptkn() { # UpsertMsgByTkn

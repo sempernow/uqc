@@ -7,6 +7,10 @@ import (
 	"github.com/ardanlabs/conf"
 )
 
+const (
+	CacheKeyTknPrefix = "tkn."
+)
+
 // Levels
 //
 //	REQUEST is sans client-added latencies.
@@ -56,15 +60,31 @@ type Error struct {
 // Env is the receiver of all (exported) client functions,
 // and contains all parameters defining the client environment.
 type Env struct {
-	Args        conf.Args `json:"args,omitempty"`
-	NS          string    `json:"ns,omitempty"`
-	Assets      string    `json:"assets,omitempty"`
-	Cache       string    `json:"cache,omitempty"`
-	SitesPass   string    `json:"sites_pass,omitempty"`
-	SiteListSrc string    `json:"site_list_src,omitempty"`
-	Client      `json:"client,omitempty"`
-	Service     `json:"service,omitempty"`
-	Channel     `json:"channel,omitempty"`
+	Args          conf.Args `json:"args,omitempty"`
+	NS            string    `json:"ns,omitempty"`
+	Build         `json:"build"`
+	Assets        string `json:"assets,omitempty"`
+	Cache         string `json:"cache,omitempty"`
+	SitesPass     string `json:"sites_pass,omitempty"`
+	SitesListCSV  string `json:"sites_list_csv,omitempty"`
+	SitesListJSON string `json:"sites_list_json,omitempty"`
+	Client        `json:"client,omitempty"`
+	Service       `json:"service,omitempty"`
+	Channel       `json:"channel,omitempty"`
+}
+
+// Build contains application build info.
+type Build struct {
+	Desc    string `json:"desc,omitempty"`
+	Maker   string `json:"maker,omitempty"`
+	SVN     string `json:"svn,omitempty"`
+	Version string `json:"version,omitempty"`
+	Built   string `json:"built,omitempty"`
+	Year    string `json:"year,omitempty"`
+
+	// BuiltAOA string
+	// BuiltAPI string
+	// BuiltPWA string
 }
 
 // Client contains all request parameters.

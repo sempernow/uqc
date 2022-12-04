@@ -1,0 +1,35 @@
+# https://docs.docker.com/compose/compose-file
+version: '3.8'  # @ Docker Engine 19.03.0+
+
+x-logopts: # https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields 
+    &common-logopts # https://docs.docker.com/compose/compose-file/compose-file-v3/#logging 
+    options:
+        max-size: '12m'
+        max-file: '5'
+    driver: json-file
+
+volumes:  
+    cache:
+
+networks:
+    web:
+
+services:
+    cli: 
+        image: ${HUB}/${PRJ}.cli-${ARCH}:${VER_APP}
+        volumes:
+            - cache:/app/cache
+            - ${PATH_HOST_ROOT}/assets:/app/assets
+        networks:
+            - web
+        # ports: # Unnecessary
+        #     - 8080:80
+        env_file:
+            - ${PATH_HOST_ROOT}/assets/.env/common.env
+            - ${PATH_HOST_ROOT}/assets/.env/creds.${APP_SERVICE_HOST}.env
+        command: ["/app/main", "upsertpostschron", "2"]
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: any
+        logging: *common-logopts

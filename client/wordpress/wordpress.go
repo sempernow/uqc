@@ -28,7 +28,7 @@ func NewWordPress(env *client.Env, site *Site) *WP {
 	}
 }
 
-// MakeSitesList creates []Sites from a CSV file (SiteListSrc).
+// MakeSitesList creates []Sites from a CSV file.
 // Those values are the export of an SQL query (hosts_channels.sql)
 // for relevant records (users and channels) in Uqrate data store.
 func MakeSitesList(env *client.Env) []Site {
@@ -36,7 +36,7 @@ func MakeSitesList(env *client.Env) []Site {
 	sites := []Site{}
 
 	// Open the sites-list CSV file
-	bb, err := os.ReadFile(filepath.Join(env.Assets, "wp", env.SiteListSrc))
+	bb, err := os.ReadFile(filepath.Join(env.Assets, env.SitesListCSV))
 	if err != nil {
 		client.GhostPrint("\nERR @ os.ReadFile(..) : %s\n", err.Error())
 		return sites
@@ -80,15 +80,15 @@ func MakeSitesList(env *client.Env) []Site {
 // if exist, else makes and caches anew.
 func GetSitesList(env *client.Env) []Site {
 	sites := []Site{}
-	j := env.GetCache(CacheSitesList)
+	j := env.GetCache(env.SitesListJSON)
 	if len(j) == 0 {
 		client.GhostPrint("\n=== Make new sites list\n")
 		sites = MakeSitesList(env)
-		if err := env.SetCache(CacheSitesList, convert.Stringify(sites)); err != nil {
+		if err := env.SetCache(env.SitesListJSON, convert.Stringify(sites)); err != nil {
 			client.GhostPrint("\nERR @ setting cache\n")
 			return sites
 		}
-		j = env.GetCache(CacheSitesList)
+		j = env.GetCache(env.SitesListJSON)
 	}
 	if err := json.Unmarshal(j, &sites); err != nil {
 		client.GhostPrint("\nERR @ unmarshalling json\n")
@@ -137,7 +137,7 @@ func (wp WP) SitePosts() {
 
 // GetTkn retrieves JWT for env.Client.User; get from cache; fetch on miss.
 func (wp WP) GetTkn() string {
-	key := CacheKeyTknPrefix + wp.Env.Client.User
+	key := client.CacheKeyTknPrefix + wp.Env.Client.User
 	bb := wp.Env.GetCache(key)
 	if len(bb) == 0 {
 		client.GhostPrint("INFO : cache miss @ %s\n", key)

@@ -38,7 +38,7 @@ func (env *Env) PatchKey(cid string, arg ...string) *Response {
 		endpt = env.BaseAPI + KEY_ENDPT
 		rtn   = Response{}
 		got   = ApiKey{}
-		jwt   = convert.BytesToString(env.GetCache("/keys/tkn." + env.Client.User))
+		jwt   = convert.BytesToString(env.GetCache(CacheKeyTknPrefix + env.Client.User))
 	)
 	if len(arg) > 0 {
 		jwt = arg[0]

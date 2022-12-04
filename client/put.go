@@ -58,7 +58,7 @@ func (env *Env) PutByTkn(tkn, url string, data interface{}) *Response {
 	)
 	if tkn == "" {
 		//tkn = env.Client.Token
-		tkn = convert.BytesToString(env.GetCache("/keys/tkn." + env.Client.User))
+		tkn = convert.BytesToString(env.GetCache(CacheKeyTknPrefix + env.Client.User))
 	}
 	if tkn == "" {
 		rtn.Error = "missing token"

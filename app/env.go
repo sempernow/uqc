@@ -28,9 +28,10 @@ const (
 )
 
 // Build-time parameters : values set thereof by Golang compiler/linker per ldflags.
-// 	See Makefile.settings for sources of values
-// 	See Dockerfile : RUN go build -ldflags="-X '${MODULE}/app.Maker=${VENDOR}' -X ...
-// 	See docker image inspect : .[].Config.Labels
+//
+//	See Makefile.settings for sources of values
+//	See Dockerfile : RUN go build -ldflags="-X '${MODULE}/app.Maker=${VENDOR}' -X ...
+//	See docker image inspect : .[].Config.Labels
 var (
 	// Maker is the copyright holder : VENDOR
 	Maker string = "@src"
@@ -53,11 +54,12 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 
 	var cfg struct {
 		conf.Version
-		Args        conf.Args
-		Assets      string `conf:"default:assets"`
-		Cache       string `conf:"default:assets/wp"`
-		SitesPass   string `conf:"default:aPass,noprint"`
-		SiteListSrc string `conf:"default:host_channels.csv"`
+		Args          conf.Args
+		Assets        string `conf:"default:assets"`
+		Cache         string `conf:"default:cache"`
+		SitesPass     string `conf:"default:aPass,noprint"`
+		SitesListCSV  string `conf:"default:host_channels.csv"`
+		SitesListJSON string `conf:"default:_sites.json"`
 
 		Client struct { // APP_CLIENT_*
 			User  string `conf:"default:aUser"`
@@ -114,12 +116,23 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 	}
 
 	return &client.Env{
-		Args:        cfg.Args,
-		NS:          NS,
-		Assets:      cfg.Assets,
-		Cache:       cfg.Cache,
-		SitesPass:   cfg.SitesPass,
-		SiteListSrc: cfg.SiteListSrc,
+		Args:          cfg.Args,
+		NS:            NS,
+		Assets:        cfg.Assets,
+		Cache:         cfg.Cache,
+		SitesPass:     cfg.SitesPass,
+		SitesListCSV:  cfg.SitesListCSV,
+		SitesListJSON: cfg.SitesListJSON,
+
+		Build: client.Build{
+			Desc:    cfg.Desc,
+			Maker:   Maker,
+			SVN:     fmt.Sprintf("%.12s", SVN),
+			Version: Version,
+			Built:   Built,
+			Year:    Built[:4],
+		},
+
 		Client: client.Client{
 			User:  cfg.Client.User,
 			Pass:  cfg.Client.Pass,
@@ -132,6 +145,7 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 			TraceDump:  cfg.Client.TraceDump,
 			TraceFpath: cfg.Client.TraceFpath,
 		},
+
 		Service: client.Service{
 			BaseURL: cfg.Service.BaseURL,
 			BaseAOA: cfg.Service.BaseURL + BASE_AOA,
@@ -141,6 +155,7 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 			// BaseAPI: cfg.Service.BaseAPI,
 			// BasePWA: cfg.Service.BasePWA,
 		},
+
 		Channel: client.Channel{
 			HostURL: cfg.Channel.HostURL,
 			//OwnerID:  cfg.Channel.OwnerID,

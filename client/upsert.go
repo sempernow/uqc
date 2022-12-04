@@ -10,8 +10,8 @@ import (
 // Channel.Slug (slug) using bearer-token (token) authorization.
 //
 //	Defaults:
-//		token (args[0]): env.GetCache("/keys/tkn." + env.Client.User)
-//		                 @ ${APP_CACHE}/keys/tkn.${APP_CLIENT_USER}
+//		token (args[0]): env.GetCache(client.CacheKeyTknPrefix + env.Client.User)
+//		                 @ ${APP_CACHE}/tkn.${APP_CLIENT_USER}
 //		slug  (args[1]): env.Channel.Slug
 //		                 @ ${APP_CHANNEL_SLUG}
 func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
@@ -29,7 +29,7 @@ func (env *Env) UpsertMsgByTkn(msg *Message, args ...string) *Response {
 		}
 	}
 	if jwt == "" {
-		jwt = convert.BytesToString(env.GetCache("/keys/tkn." + env.Client.User))
+		jwt = convert.BytesToString(env.GetCache(CacheKeyTknPrefix + env.Client.User))
 	}
 	if jwt == "" {
 		rtn.Error = "missing token"
@@ -100,7 +100,7 @@ func (env *Env) UpsertMsgByKey(msg *Message, key string) *Response {
 	)
 	if key == "" {
 		k := ApiKey{}
-		env.GetCacheJSON("/keys/key."+msg.ChnID+".json", &k)
+		env.GetCacheJSON("/key."+msg.ChnID+".json", &k)
 		key = k.Key
 	}
 	if key == "" {
