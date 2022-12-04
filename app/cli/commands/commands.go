@@ -196,10 +196,19 @@ func UpsertPosts(env *client.Env) {
 	}
 }
 
-// UpssertPostsChron repeatedly runs the UpsertPosts task repeatedly per hours, endlessly.
+// UpsertPostsChron repeatedly runs the UpsertPosts task once per hours, forever.
 func UpsertPostsChron(env *client.Env, hours int) {
+	report := func(msg string, i int) {
+		client.GhostPrint("\n=== %9d : %5s : %s\n", i, msg, time.Now().Format(time.RFC3339))
+	}
+	i := 1
 	for {
+		report("BEGIN", i)
+
 		UpsertPosts(env)
+
+		report("END", i)
 		time.Sleep(time.Duration(hours) * time.Hour)
+		i += 1
 	}
 }

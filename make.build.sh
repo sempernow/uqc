@@ -20,7 +20,8 @@ docker build \
     --build-arg SVN=${SVN} \
     --build-arg VER=${2} \
     --build-arg BUILT="${BUILT}" \
-    . && docker push ${HUB}/${PRJ}.${1}-${ARCH}:${2}
+    . && docker push ${HUB}/${PRJ}.${1}-${ARCH}:${2} \
+        && docker image prune -f
 
 exit
 

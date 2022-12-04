@@ -109,7 +109,7 @@ func Uint64ToString(u uint64) string {
 	return strconv.FormatUint(u, 10)
 }
 
-// ToString : any
+// ToString from any.
 func ToString(x interface{}) string {
 	return fmt.Sprintf("%v", x)
 } //... 3x SLOWER than others. (See benchmarks @ kit_test.go)
@@ -124,7 +124,7 @@ func Int64ToBytes(n int64) []byte {
 // ----------------------------------------------------------------------------
 // String to ...
 
-// ToInt ...
+// ToInt default zero.
 func ToInt(s string) int {
 	n, err := strconv.Atoi(s)
 	if err != nil {
@@ -133,7 +133,7 @@ func ToInt(s string) int {
 	return n
 }
 
-// ToInt64 ...
+// ToInt64 default zero.
 func ToInt64(s string) int64 {
 	n, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
@@ -142,9 +142,7 @@ func ToInt64(s string) int64 {
 	return n
 }
 
-// ToUint64 ...
-// Else: uid := strconv.FormatUint(u.ID, 10)
-// E.g., from BIGINT (db) to uint64 (struct) to string
+// ToUint64 default zero.
 func ToUint64(s string) uint64 {
 	n, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {

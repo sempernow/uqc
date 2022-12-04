@@ -45,8 +45,8 @@ ARG SVN
 ARG VER
 ARG BUILT
 
-#RUN apk --no-cache add curl
-RUN apk --no-cache add jq
+RUN apk add --no-cache jq tzdata
+ENV TZ=America/New_York
 
 RUN mkdir -p /app/assets
 RUN mkdir -p /app/cache
@@ -57,7 +57,7 @@ COPY --from=builder /work/app/${PKG_NAME}/${PKG_NAME} /app/main
 
 WORKDIR /app
 CMD ["sleep", "1d"]
-# CMD ["/app/main", "upsertpostschron"]
+# CMD ["/app/main", "upsertpostschron", "2"]
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys 
 LABEL image.authors="${AUTHORS}"
