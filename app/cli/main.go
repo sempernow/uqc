@@ -89,6 +89,36 @@ func run() error {
 
 	switch env.Args.Num(0) {
 
+	case "dev":
+		j := `{
+			"id": 346241,
+			"date": "2022-12-21T14:48:25",
+			"date_gmt": "1970-01-01T00:00:00",
+			"modified": "2022-12-21T14:48:25",
+			"modified_gmt": "1970-01-01T00:00:00",
+			"slug": "some-slug",
+			"link": "https://foo.bar/baz",
+			"title": {
+				"rendered": "Title"
+			}
+		}`
+		post := wordpress.Post{}
+		if err := json.Unmarshal([]byte(j), &post); err != nil {
+			return errors.Wrap(err, "decoding JSON message")
+		}
+		toRFC3339 := func(date string) time.Time {
+			t, _ := time.Parse(time.RFC3339, date+"Z")
+			return t.UTC()
+		}
+		isUnixZero := func(t time.Time) bool {
+			return t == time.Unix(0, 0).UTC()
+		}
+		fmt.Println(convert.PrettyPrint(post))
+		fmt.Println(
+			toRFC3339(post.DateGMT).IsZero(),
+			isUnixZero(toRFC3339(post.DateGMT)),
+			toRFC3339(post.DateGMT),
+		)
 	case "env":
 		if err := env.PrettyPrint(); err != nil {
 			return err

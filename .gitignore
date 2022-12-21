@@ -63,6 +63,8 @@ node_modules
 LOG.md
 LOG.html
 README.html
+TLDR.md
+TLDR.html
 make.md2html.sh
 make.perms.sh
 make.tarball.sh

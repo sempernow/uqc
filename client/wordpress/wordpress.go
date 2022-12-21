@@ -230,17 +230,18 @@ func (wp WP) PostToMsg(post *Post) client.Message {
 	sanitize(msg.Tags)
 
 	// Recover the post timestamp
-	msg.DateUpdate = asRFC3339(post.ModifiedGMT)
-	if msg.DateUpdate.IsZero() {
-		msg.DateUpdate = asRFC3339(post.Modified)
+	msg.DateUpdate = ToRFC3339(post.ModifiedGMT)
+	if IsUnixZero(msg.DateUpdate) {
+		msg.DateUpdate = ToRFC3339(post.Modified)
 	}
-	if msg.DateUpdate.IsZero() {
-		msg.DateUpdate = asRFC3339(post.DateGMT)
+	if IsUnixZero(msg.DateUpdate) {
+
+		msg.DateUpdate = ToRFC3339(post.DateGMT)
 	}
-	if msg.DateUpdate.IsZero() {
-		msg.DateUpdate = asRFC3339(post.Date)
+	if IsUnixZero(msg.DateUpdate) {
+		msg.DateUpdate = ToRFC3339(post.Date)
 	}
-	if msg.DateUpdate.IsZero() {
+	if IsUnixZero(msg.DateUpdate) {
 		msg.DateUpdate = time.Now().UTC()
 	}
 
@@ -397,8 +398,13 @@ func linkToURI(link string) string {
 	return "/" + strings.Join(x[1:], "")
 }
 
-// asRFC339 parses WordPress ($post) timestamp string into Golang time.
-func asRFC3339(date string) time.Time {
+// ToRFC339 parses WordPress ($post) timestamp string into Golang time (GMT).
+func ToRFC3339(date string) time.Time {
 	t, _ := time.Parse(time.RFC3339, date+"Z")
-	return t
+	return t.UTC()
+}
+
+// IsUnixZero returns true IIF arg (t) is 1970-01-01 00:00:00 +0000 UTC.
+func IsUnixZero(t time.Time) bool {
+	return t == time.Unix(0, 0).UTC()
 }

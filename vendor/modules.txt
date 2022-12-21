@@ -1,5 +1,5 @@
 # github.com/ardanlabs/conf v1.5.0
-## explicit
+## explicit; go 1.13
 github.com/ardanlabs/conf
 # github.com/gofrs/uuid v4.2.0+incompatible
 ## explicit
@@ -8,9 +8,10 @@ github.com/gofrs/uuid
 ## explicit
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-multierror v1.1.1
+## explicit; go 1.13
 github.com/hashicorp/go-multierror
 # github.com/imroc/req/v3 v3.9.3
-## explicit
+## explicit; go 1.13
 github.com/imroc/req/v3
 github.com/imroc/req/v3/internal
 github.com/imroc/req/v3/internal/ascii
@@ -18,7 +19,7 @@ github.com/imroc/req/v3/internal/charsets
 github.com/imroc/req/v3/internal/socks
 github.com/imroc/req/v3/internal/util
 # github.com/klauspost/cpuid/v2 v2.0.11
-## explicit
+## explicit; go 1.15
 github.com/klauspost/cpuid/v2
 # github.com/oklog/ulid v1.3.1
 ## explicit
@@ -27,7 +28,7 @@ github.com/oklog/ulid
 ## explicit
 github.com/pkg/errors
 # golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-## explicit
+## explicit; go 1.17
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset
@@ -36,6 +37,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/publicsuffix
 # golang.org/x/text v0.3.7
+## explicit; go 1.17
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/htmlindex
@@ -58,5 +60,5 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 # lukechampine.com/blake3 v1.1.7
-## explicit
+## explicit; go 1.13
 lukechampine.com/blake3

@@ -6,13 +6,14 @@
 export APP_ASSETS=${PATH_HOST_ROOT}/assets
 export APP_CACHE=${PATH_HOST_ROOT}/cache
 
-export APP_CLIENT_PASS="$(cat ${APP_ASSETS}/.env/app.${APP_SERVICE_HOST}.env \
+export _PREFIX=creds
+export APP_CLIENT_PASS="$(cat ${APP_ASSETS}/.env/${_PREFIX}.${APP_SERVICE_HOST}.env \
     |grep APP_CLIENT_PASS |awk -F '=' '{print $2}'\
 )"
-export APP_CLIENT_KEY="$(cat ${APP_ASSETS}/.env/app.${APP_SERVICE_HOST}.env \
+export APP_CLIENT_KEY="$(cat ${APP_ASSETS}/.env/${_PREFIX}.${APP_SERVICE_HOST}.env \
     |grep APP_CLIENT_KEY |awk -F '=' '{print $2}'\
 )"
-export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/app.${APP_SERVICE_HOST}.env \
+export APP_SITES_PASS="$(cat ${APP_ASSETS}/.env/${_PREFIX}.${APP_SERVICE_HOST}.env \
     |grep APP_SITES_PASS |awk -F '=' '{print $2}'\
 )"
 

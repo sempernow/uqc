@@ -52,21 +52,22 @@ func UpdateUsers(env *client.Env) {
 	// All sites mirrored hereby share common password
 	env.Client.Pass = env.SitesPass
 
-	var (
-		avatar = "-avatar.webp"
-		banner = "-banner.webp"
-	)
-
 	for _, site := range sites {
 		wp := wordpress.NewWordPress(env, &site)
 		env.Client.User = site.UserHandle
+
 		tkn := wp.GetTkn()
+
 		if tkn == "" {
 			continue
 		}
 
 		// Get/Set avatar and banner
 
+		var (
+			avatar = "-avatar.webp"
+			banner = "-banner.webp"
+		)
 		if _, err := os.ReadFile(
 			filepath.Join(env.Assets, "media", "avatars", (site.UserHandle + avatar)),
 		); err != nil {
