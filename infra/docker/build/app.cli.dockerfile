@@ -45,7 +45,7 @@ ARG SVN
 ARG VER
 ARG BUILT
 
-RUN apk add --no-cache jq tzdata
+RUN apk update && apk --no-cache add jq tzdata && rm -rf /var/cache/apk/*
 ENV TZ=America/New_York
 
 RUN mkdir -p /app/assets

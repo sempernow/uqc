@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -230,20 +231,23 @@ func (wp WP) PostToMsg(post *Post) client.Message {
 	sanitize(msg.Tags)
 
 	// Recover the post timestamp
-	msg.DateUpdate = ToRFC3339(post.ModifiedGMT)
-	if IsUnixZero(msg.DateUpdate) {
-		msg.DateUpdate = ToRFC3339(post.Modified)
-	}
-	if IsUnixZero(msg.DateUpdate) {
 
-		msg.DateUpdate = ToRFC3339(post.DateGMT)
+	off := wp.Site.GMTOffset
+	msg.DateUpdate = ToRFC3339(post.ModifiedGMT, 0)
+	if IsUnixZero(msg.DateUpdate) {
+		msg.DateUpdate = ToRFC3339(post.Modified, off)
 	}
 	if IsUnixZero(msg.DateUpdate) {
-		msg.DateUpdate = ToRFC3339(post.Date)
+		msg.DateUpdate = ToRFC3339(post.DateGMT, 0)
 	}
 	if IsUnixZero(msg.DateUpdate) {
-		msg.DateUpdate = time.Now().UTC()
+		msg.DateUpdate = ToRFC3339(post.Date, off)
 	}
+	if IsUnixZero(msg.DateUpdate) || msg.DateUpdate.IsZero() {
+		msg.DateUpdate = time.Now().Truncate(1 * time.Second).UTC()
+		client.GhostPrint("=== msg.DateUpdate : NOT FOUND : Set to current time.\n")
+	}
+	client.GhostPrint("=== msg.DateUpdate : %v : GMT Offset was: %d\n", msg.DateUpdate, off)
 
 	return msg
 }
@@ -398,13 +402,33 @@ func linkToURI(link string) string {
 	return "/" + strings.Join(x[1:], "")
 }
 
-// ToRFC339 parses WordPress ($post) timestamp string into Golang time (GMT).
-func ToRFC3339(date string) time.Time {
-	t, _ := time.Parse(time.RFC3339, date+"Z")
-	return t.UTC()
+// ToRFC3339 parses WordPress-posts ($post) date into Golang time (GMT).
+func ToRFC3339(date string, offset int) time.Time {
+	// ToRFC3339("2021-12-21T13:15:31", -6)
+	//==>         2021-12-21 19:15:31 +0000 UTC
+	// WP REST API @ /wp-json :
+	// "gmt_offset": -6
+	// WP REST API @ /wp-json/wp/v2/posts :
+	// "date":         "2021-12-21T13:15:31",
+	// "date_gmt":     "2021-12-21T19:15:31",
+	// "modified":     "2022-01-11T14:22:07",
+	// "modified_gmt": "2022-01-11T20:22:07",
+	off := "Z"
+	if offset < 0 {
+		if offset > -26 {
+			off = fmt.Sprintf("%.2d:00", offset)
+		}
+	} else {
+		if offset < 26 {
+			off = fmt.Sprintf("+%.2d:00", offset)
+		}
+	}
+	t, _ := time.Parse(time.RFC3339, (date + off))
+	return t.Truncate(1 * time.Second).UTC()
 }
 
-// IsUnixZero returns true IIF arg (t) is 1970-01-01 00:00:00 +0000 UTC.
+// IsUnixZero tests for "1970-01-01 00:00:00 +0000 UTC".
+// Unlike time pkg t.IsZero(), which tests for "0001-01-01 00:00:00 +0000 UTC".
 func IsUnixZero(t time.Time) bool {
 	return t == time.Unix(0, 0).UTC()
 }
