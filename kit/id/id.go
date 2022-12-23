@@ -38,7 +38,8 @@ const (
 
 // Base32 returns a base32-encoded UUID v4 sans padding;
 // a unique string of 26 alphanumeric characters based on alphabet.
-// 	Alphabets: Base32Hex, RFC4648 (default), WordSafe, Zbase32.
+//
+//	Alphabets: Base32Hex, RFC4648 (default), WordSafe, Zbase32.
 func Base32(alphabet ...string) string {
 	var a string
 	if len(alphabet) == 0 {
@@ -57,15 +58,17 @@ func Base32(alphabet ...string) string {
 	return bb.String()
 }
 
-// UUIDv5 returns the static ID per namespace (DNS, OID, URL or x500)
-// and name, both case-insensitive.
+// UUIDv5 returns the static ID per namespace and name.
+// Namespace may be any UUID string, or named reference to one predifined;
+// "DNS", "OID", "URL", OR "X500". Input is case-insenstive.
+// Name is converted to lower case regardless.
 func UUIDv5(space, name string) (string, error) {
 
 	if name == "" {
 		return "", errors.New("missing NAME")
 	}
+	var ns = uuid.UUID{}
 
-	ns := uuid.NamespaceDNS
 	switch strings.ToUpper(space) {
 	case "DNS":
 		ns = uuid.NamespaceDNS
@@ -76,9 +79,13 @@ func UUIDv5(space, name string) (string, error) {
 	case "X500":
 		ns = uuid.NamespaceX500
 	default:
-		return "", errors.New(
-			"missing or bad NAMESPACE [dns, oid, url, x500]",
-		)
+		var err error
+		ns, err = uuid.FromString(space)
+		if err != nil {
+			return "", errors.New(
+				"invalid NAMESPACE ['dns', 'oid', 'url', 'x500', (any UUID)]",
+			)
+		}
 	}
 	return uuid.NewV5(ns, strings.ToLower(name)).String(), nil
 }

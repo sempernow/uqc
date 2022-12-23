@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/kit/convert"
+	"github.com/sempernow/uqc/kit/id"
 	"github.com/sempernow/uqc/kit/str"
 )
 
@@ -202,7 +202,12 @@ func (wp WP) PostToMsg(post *Post) client.Message {
 
 	msg.ChnID = wp.Site.ChnID
 	msg.URI = linkToURI(post.Link)
-	msg.ID = uuid.NewV5(uuid.Must(uuid.FromString(msg.ChnID)), msg.URI).String()
+	//msg.ID = uuid.NewV5(uuid.Must(uuid.FromString(msg.ChnID)), strings.ToLower(msg.URI)).String()
+	msg.ID, _ = id.UUIDv5(msg.ChnID, msg.URI)
+	if msg.ID == "" {
+		client.GhostPrint("=== FAIL @ UUIDv5 : URI: %s .\n", msg.URI)
+		return client.Message{URI: msg.URI}
+	}
 
 	msg.Title = post.Title.Rendered
 	msg.Body = post.Content.Rendered

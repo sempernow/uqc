@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/sempernow/uqc/app"
 	"github.com/sempernow/uqc/app/cli/commands"
 
@@ -89,7 +90,7 @@ func run() error {
 
 	switch env.Args.Num(0) {
 
-	case "dev":
+	case "dev0":
 		j := `{
 			"id": 346241,
 			"date": "2022-12-21T14:48:25",
@@ -119,6 +120,8 @@ func run() error {
 			isUnixZero(toRFC3339(post.DateGMT)),
 			toRFC3339(post.DateGMT),
 		)
+	case "dev1":
+		fmt.Println(uuid.NewV5(uuid.Must(uuid.FromString("8ba7e110-828e-4441-bdae-408e1bb4217a")), "/the-miraculous-charlene-richard/").String())
 	case "env":
 		if err := env.PrettyPrint(); err != nil {
 			return err
