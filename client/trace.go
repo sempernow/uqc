@@ -1,7 +1,6 @@
 package client
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -77,9 +76,9 @@ func (env *Env) Trace(endpt, cType string) *Response {
 
 	// Dump successful response to file (env.TraceFpath) conditionally per env setting.
 	if env.TraceDump && (env.TraceFpath != "") {
-		if err := ioutil.WriteFile(env.TraceFpath, rsp.Bytes(), 0644); err != nil {
+		if err := os.WriteFile(env.TraceFpath, rsp.Bytes(), 0644); err != nil {
 			rtn.Error = errors.Wrap(
-				err, "@ ioutil.WriteFile(..) : '"+env.TraceFpath+"'",
+				err, "@ WriteFile : '"+env.TraceFpath+"'",
 			).Error()
 
 			return &rtn

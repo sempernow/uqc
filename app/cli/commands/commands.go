@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,9 +38,9 @@ func UpsertChannels(env *client.Env) {
 		}
 		rsp := wp.Env.PostByTkn(tkn, env.Service.BaseAPI+"/c/upsert", &chn)
 		if rsp.Code > 299 {
-			client.GhostPrint("\nERR @ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			log.Printf("ERR @ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		} else {
-			client.GhostPrint("\n@ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			log.Printf("@ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		}
 	}
 }
@@ -101,44 +102,44 @@ func UpdateUsers(env *client.Env) {
 		// Update site (user) record
 		rsp := wp.Env.PutByTkn(tkn, env.Service.BaseAPI+"/u/"+site.OwnerID, &user)
 		if rsp.Code > 299 {
-			client.GhostPrint("\nERR @ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			log.Printf("ERR @ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		} else {
-			client.GhostPrint("\n@ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			log.Printf("@ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		}
 	}
 }
 
 // PurgeCacheTkns removes token cache.
 func PurgeCacheTkns(env *client.Env) {
-	client.GhostPrint("\nDelete Tokens ("+client.CacheKeyTknPrefix+"*) @ %s\n", env.Cache)
+	log.Printf("Delete Tokens ("+client.CacheKeyTknPrefix+"*) @ %s\n", env.Cache)
 	sites := wordpress.GetSitesList(env)
 	for _, site := range sites {
 		fname := client.CacheKeyTknPrefix + site.UserHandle
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
-			//client.GhostPrint("\nERR @ os.Remove : %v\n", err)
+			//log.Printf("ERR @ os.Remove : %v\n", err)
 		} else {
-			client.GhostPrint("\nDEL @ %s\n", fname)
+			log.Printf("DEL @ %s\n", fname)
 		}
 	}
 }
 
 // PurgeCachePosts removes posts and messages cache.
 func PurgeCachePosts(env *client.Env) {
-	client.GhostPrint("\nDelete Posts and Messages Cache : @ %s\n", env.Cache)
+	log.Printf("Delete Posts and Messages Cache : @ %s\n", env.Cache)
 	sites := wordpress.GetSitesList(env)
 	for _, site := range sites {
 		domain := strings.Split(site.HostURL, "//")[1]
 		fname := domain + SUFFIX_POSTS
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
-			//client.GhostPrint("\nERR @ os.Remove : %v\n", err)
+			//log.Printf("ERR @ os.Remove : %v\n", err)
 		} else {
-			client.GhostPrint("\nDEL @ %s\n", fname)
+			log.Printf("DEL @ %s\n", fname)
 		}
 		fname = domain + SUFFIX_MSGS
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
-			//client.GhostPrint("\nERR @ os.Remove : %v\n", err)
+			//log.Printf("ERR @ os.Remove : %v\n", err)
 		} else {
-			client.GhostPrint("\nDEL @ %s\n", fname)
+			log.Printf("DEL @ %s\n", fname)
 		}
 	}
 }
@@ -163,18 +164,18 @@ func UpsertPosts(env *client.Env) {
 			// @ CSV header (first row)
 			continue
 		}
-		client.GhostPrint("\n=== @ %d : %s\n", i, site.UserHandle)
+		log.Printf("@ %d : %s\n", i, site.UserHandle)
 
 		wp = wordpress.NewWordPress(env, &site)
 		wp.SitePosts()
 		if len(wp.Site.Posts) == 0 {
-			client.GhostPrint("\nWARN : NO Posts @ site : %s : %s\n", site.UserHandle, wp.Site.Error)
+			log.Printf("WARN : NO Posts @ site : %s : %s\n", site.UserHandle, wp.Site.Error)
 			continue
 		}
 
 		msgs = wp.PostsToMsgs()
 		if len(msgs) == 0 {
-			client.GhostPrint("\nWARN : NO Messages converted for site : %s\n", site.UserHandle)
+			log.Printf("WARN : NO Messages converted for site : %s\n", site.UserHandle)
 			continue
 		}
 
@@ -187,12 +188,12 @@ func UpsertPosts(env *client.Env) {
 
 		for _, msg := range msgs {
 			rsp := env.UpsertMsgByTkn(&msg)
-			client.GhostPrint("\nINFO : Messages Upserted @ %s : rsp: %s\n", site.UserHandle, convert.Stringify(rsp))
+			log.Printf("INFO : Messages Upserted @ %s : rsp: %s\n", site.UserHandle, convert.Stringify(rsp))
 		}
 
 		domain := strings.Split(site.HostURL, "//")[1]
 		if err := env.SetCache(domain+SUFFIX_MSGS, convert.Stringify(msgs)); err != nil {
-			client.GhostPrint("\nERR : setting *"+SUFFIX_MSGS+" cache : %s : %s\n", site.UserHandle, err.Error())
+			log.Printf("ERR : setting *"+SUFFIX_MSGS+" cache : %s : %s\n", site.UserHandle, err.Error())
 		}
 	}
 }
@@ -200,7 +201,7 @@ func UpsertPosts(env *client.Env) {
 // UpsertPostsChron repeatedly runs the UpsertPosts task once per hours, forever.
 func UpsertPostsChron(env *client.Env, hours int) {
 	report := func(msg string, i int) {
-		client.GhostPrint("\n=== %9d : %5s : %s\n", i, msg, time.Now().Format(time.RFC3339))
+		log.Printf("%9d : %5s\n", i, msg)
 	}
 	i := 1
 	for {

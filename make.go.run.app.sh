@@ -3,8 +3,10 @@
 #  Makefile recipes for : go run ...  
 # -----------------------------------------------------------------------------
 
-export APP_ASSETS=${PATH_HOST_ROOT}/assets
-export APP_CACHE=${PATH_HOST_ROOT}/cache
+
+#export APP_ASSETS=${PATH_HOST_ROOT}/assets
+#export APP_CACHE=${PATH_HOST_ROOT}/cache
+[[ -d "$APP_CACHE" ]] || mkdir -p "$APP_CACHE"
 
 export _PREFIX=creds
 export APP_CLIENT_PASS="$(cat ${APP_ASSETS}/.env/${_PREFIX}.${APP_SERVICE_HOST}.env \

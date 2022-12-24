@@ -130,10 +130,9 @@ func run() error {
 		commands.UpsertPostsChron(env, convert.ToInt(env.Args.Num(1)))
 
 	case "siteslist":
-		fname := env.SitesListJSON
-		client.GhostPrint("\n=== Make new sites list\n")
+		fmt.Printf("\n=== Make & cache new sites list (JSON)\n")
 		sites := wordpress.MakeSitesList(env)
-		if err := env.SetCache(fname, convert.Stringify(sites)); err != nil {
+		if err := env.SetCache(env.SitesListJSON, convert.Stringify(sites)); err != nil {
 			return err
 		}
 

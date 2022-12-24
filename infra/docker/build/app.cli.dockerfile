@@ -46,10 +46,13 @@ ARG VER
 ARG BUILT
 
 RUN apk update && apk --no-cache add jq tzdata && rm -rf /var/cache/apk/*
+# https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 ENV TZ=America/New_York
+#ENV TZ=EST5EDT
+#ENV TZ=US/Eastern
 
 RUN mkdir -p /app/assets
-RUN mkdir -p /app/cache
+RUN mkdir -p /tmp/${PRJ}/cache
 
 ENV PATH="/app:${PATH}"
 

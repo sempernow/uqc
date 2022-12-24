@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,10 +38,16 @@ func MakeSitesList(env *client.Env) []Site {
 	sites := []Site{}
 
 	// Open the sites-list CSV file
-	bb, err := os.ReadFile(filepath.Join(env.Assets, env.SitesListCSV))
+
+	log.Printf("INFO : Try read %s from Docker config\n", env.SitesListCSV)
+	bb, err := os.ReadFile(env.SitesListCSV)
 	if err != nil {
-		client.GhostPrint("\nERR @ os.ReadFile(..) : %s\n", err.Error())
-		return sites
+		log.Printf("INFO : Try read %s from cache\n", env.SitesListCSV)
+		bb, err = os.ReadFile(filepath.Join(env.Assets, env.SitesListCSV))
+		if err != nil {
+			log.Printf("ERR @ ReadFile : %s\n", err.Error())
+			return sites
+		}
 	}
 	r := csv.NewReader(bytes.NewReader(bb))
 
@@ -81,18 +88,26 @@ func MakeSitesList(env *client.Env) []Site {
 // if exist, else makes and caches anew.
 func GetSitesList(env *client.Env) []Site {
 	sites := []Site{}
-	j := env.GetCache(env.SitesListJSON)
-	if len(j) == 0 {
-		client.GhostPrint("\n=== Make new sites list\n")
-		sites = MakeSitesList(env)
-		if err := env.SetCache(env.SitesListJSON, convert.Stringify(sites)); err != nil {
-			client.GhostPrint("\nERR @ setting cache\n")
-			return sites
-		}
+	log.Printf("INFO : Try read %s from Docker config\n", env.SitesListJSON)
+	j, err := os.ReadFile(env.SitesListJSON)
+	if err != nil {
+		log.Printf("INFO : Try read %s from cache\n", env.SitesListJSON)
 		j = env.GetCache(env.SitesListJSON)
+		if len(j) == 0 {
+			log.Printf("INFO : Make new sites list\n")
+			sites = MakeSitesList(env)
+			if err := env.SetCache(env.SitesListJSON, convert.Stringify(sites)); err != nil {
+				log.Printf("ERR : setting cache\n")
+				return sites
+			}
+			j = env.GetCache(env.SitesListJSON)
+		}
+	}
+	if len(j) == 0 {
+		log.Printf("ERR : sites list (%s) EMPTY or NOT FOUND\n", env.SitesListJSON)
 	}
 	if err := json.Unmarshal(j, &sites); err != nil {
-		client.GhostPrint("\nERR @ unmarshalling json\n")
+		log.Printf("ERR : unmarshalling json of '%s'\n", env.SitesListJSON)
 		return sites
 	}
 	return sites
@@ -114,7 +129,7 @@ func (wp WP) SiteGot() {
 	}
 	if err := json.Unmarshal([]byte(j), &wp.Site); err != nil {
 		wp.Site.Error = err.Error()
-		client.GhostPrint("\nERR @ Unmarshal : %s\n", err.Error())
+		log.Printf("ERR : Unmarshalling : %s\n", err.Error())
 	}
 }
 
@@ -132,7 +147,7 @@ func (wp WP) SitePosts() {
 
 	if err := json.Unmarshal([]byte(j), &wp.Site.Posts); err != nil {
 		wp.Site.Error = err.Error()
-		client.GhostPrint("\nERR @ Unmarshal : %s\n", err.Error())
+		log.Printf("ERR : Unmarshalling : %s\n", err.Error())
 	}
 }
 
@@ -141,14 +156,14 @@ func (wp WP) GetTkn() string {
 	key := client.CacheKeyTknPrefix + wp.Env.Client.User
 	bb := wp.Env.GetCache(key)
 	if len(bb) == 0 {
-		client.GhostPrint("INFO : cache miss @ %s\n", key)
+		//log.Printf("INFO : cache miss @ %s\n", key)
 		rsp := wp.Env.Token()
 		if rsp.Code != 200 {
-			client.GhostPrint("\nERR : Token(..) %s : %s\n", wp.Env.Client.User, rsp.Error)
+			log.Printf("ERR : Token(..) %s : %s\n", wp.Env.Client.User, rsp.Error)
 			return ""
 		}
 		if err := wp.Env.SetCache(key, rsp.Body); err != nil {
-			client.GhostPrint("\nERR : GetTkn: %s : %s\n", wp.Env.Client.User, err.Error())
+			log.Printf("ERR : GetTkn: %s : %s\n", wp.Env.Client.User, err.Error())
 			return ""
 		}
 		return rsp.Body
@@ -164,7 +179,7 @@ func (wp WP) getWP(uri string) (string, error) {
 	// First try cache.
 	bb := wp.Env.GetCache(key)
 	if len(bb) == 0 {
-		client.GhostPrint("INFO : cache miss @ %s\n", key)
+		log.Printf("INFO : cache miss @ %s\n", key)
 
 		// Hit the site softly
 		rsp := wp.Env.Get(url, client.JSON)
@@ -205,7 +220,7 @@ func (wp WP) PostToMsg(post *Post) client.Message {
 	//msg.ID = uuid.NewV5(uuid.Must(uuid.FromString(msg.ChnID)), strings.ToLower(msg.URI)).String()
 	msg.ID, _ = id.UUIDv5(msg.ChnID, msg.URI)
 	if msg.ID == "" {
-		client.GhostPrint("=== FAIL @ UUIDv5 : URI: %s .\n", msg.URI)
+		log.Printf("ERR : UUIDv5 fail : URI: %s .\n", msg.URI)
 		return client.Message{URI: msg.URI}
 	}
 
@@ -250,9 +265,9 @@ func (wp WP) PostToMsg(post *Post) client.Message {
 	}
 	if IsUnixZero(msg.DateUpdate) || msg.DateUpdate.IsZero() {
 		msg.DateUpdate = time.Now().Truncate(1 * time.Second).UTC()
-		client.GhostPrint("=== msg.DateUpdate : NOT FOUND : Set to current time.\n")
+		log.Printf("WARN : msg.DateUpdate : NOT FOUND : Set to current time.\n")
 	}
-	client.GhostPrint("=== msg.DateUpdate : %v : GMT Offset was: %d\n", msg.DateUpdate, off)
+	log.Printf("INFO : msg.DateUpdate : %v : GMT Offset was: %d\n", msg.DateUpdate, off)
 
 	return msg
 }
@@ -320,7 +335,7 @@ func (wp WP) objNameList(uri string, want []int) []string {
 	}
 	// If any want are missing, then get per id
 	if len(miss) > 0 {
-		client.GhostPrint("\nname(s) miss (%d) @ uri: %s\n", len(miss), uri)
+		log.Printf("INFO : name(s) miss (%d) @ uri: %s\n", len(miss), uri)
 		static := uri
 		for _, id := range miss {
 			uri = appendToURL(uri, convert.IntToString(id))
