@@ -39,13 +39,13 @@ func MakeSitesList(env *client.Env) []Site {
 
 	// Open the sites-list CSV file
 
-	log.Printf("INFO : Try read %s from Docker config\n", env.SitesListCSV)
-	bb, err := os.ReadFile(env.SitesListCSV)
+	env.Logger.Printf("INFO : Try read %s from Docker config\n", DockerCfgSitesListCSV)
+	bb, err := os.ReadFile(DockerCfgSitesListCSV)
 	if err != nil {
-		log.Printf("INFO : Try read %s from cache\n", env.SitesListCSV)
+		env.Logger.Printf("INFO : Try read %s from cache\n", env.SitesListCSV)
 		bb, err = os.ReadFile(filepath.Join(env.Assets, env.SitesListCSV))
 		if err != nil {
-			log.Printf("ERR @ ReadFile : %s\n", err.Error())
+			env.Logger.Printf("ERR @ ReadFile : %s\n", err.Error())
 			return sites
 		}
 	}
@@ -88,26 +88,26 @@ func MakeSitesList(env *client.Env) []Site {
 // if exist, else makes and caches anew.
 func GetSitesList(env *client.Env) []Site {
 	sites := []Site{}
-	log.Printf("INFO : Try read %s from Docker config\n", env.SitesListJSON)
-	j, err := os.ReadFile(env.SitesListJSON)
+	env.Logger.Printf("INFO : Try read %s from Docker config\n", DockerCfgSitesListJSON)
+	j, err := os.ReadFile(DockerCfgSitesListJSON)
 	if err != nil {
-		log.Printf("INFO : Try read %s from cache\n", env.SitesListJSON)
+		env.Logger.Printf("INFO : Try read %s from cache\n", env.SitesListJSON)
 		j = env.GetCache(env.SitesListJSON)
 		if len(j) == 0 {
-			log.Printf("INFO : Make new sites list\n")
+			env.Logger.Printf("INFO : Make new sites list\n")
 			sites = MakeSitesList(env)
 			if err := env.SetCache(env.SitesListJSON, convert.Stringify(sites)); err != nil {
-				log.Printf("ERR : setting cache\n")
+				env.Logger.Printf("ERR : setting cache\n")
 				return sites
 			}
 			j = env.GetCache(env.SitesListJSON)
 		}
 	}
 	if len(j) == 0 {
-		log.Printf("ERR : sites list (%s) EMPTY or NOT FOUND\n", env.SitesListJSON)
+		env.Logger.Printf("ERR : sites list (%s) EMPTY or NOT FOUND\n", env.SitesListJSON)
 	}
 	if err := json.Unmarshal(j, &sites); err != nil {
-		log.Printf("ERR : unmarshalling json of '%s'\n", env.SitesListJSON)
+		env.Logger.Printf("ERR : unmarshalling json of '%s'\n", env.SitesListJSON)
 		return sites
 	}
 	return sites

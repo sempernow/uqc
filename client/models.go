@@ -2,6 +2,7 @@
 package client
 
 import (
+	"log"
 	"time"
 
 	"github.com/ardanlabs/conf"
@@ -60,6 +61,7 @@ type Error struct {
 // Env is the receiver of all (exported) client functions,
 // and contains all parameters defining the client environment.
 type Env struct {
+	Logger        *log.Logger
 	Args          conf.Args `json:"args,omitempty"`
 	NS            string    `json:"ns,omitempty"`
 	Build         `json:"build"`

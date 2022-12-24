@@ -35,8 +35,8 @@ services:
         # ports: # Unnecessary
         #     - 8080:80
         configs: 
-            - ${APP_SITES_LIST_CSV}
-            - ${APP_SITES_LIST_JSON}
+            - sites_list_csv
+            - sites_list_json
         env_file:
             - ${PATH_HOST_ROOT}/assets/.env/common.env
             - ${PATH_HOST_ROOT}/assets/.env/creds.${APP_SERVICE_HOST}.env
