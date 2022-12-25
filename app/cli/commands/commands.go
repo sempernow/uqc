@@ -1,3 +1,4 @@
+// Package commands provides high-level processing of a WordPress SitesList.
 package commands
 
 import (

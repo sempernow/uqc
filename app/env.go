@@ -1,3 +1,4 @@
+// Package app provides runtime configuration of the CLI from OS environment variables.
 package app
 
 import (

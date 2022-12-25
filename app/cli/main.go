@@ -1,4 +1,4 @@
-// Package app/cli/main provides a CLI interface for uqrate's http client.
+// Package app/cli/main provides a buildable CLI to functions of client and wordpress packages.
 package main
 
 import (

@@ -1,4 +1,4 @@
-// Package client provides an http client of uqrate services.
+// Package client provides an HTTP client of Uqrate services.
 package client
 
 import (

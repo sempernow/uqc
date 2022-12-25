@@ -1,18 +1,14 @@
 # [`sempernow/uqc`](https://github.com/sempernow/uqc "GitHub")
 
-A *developmental* http client and CLI (demo) for the [`uqrate`](https://uqrate.org "uqrate.org") project. The uqrate client wraps that of [imroc/req](https://github.com/imroc/req "GitHub") . 
+An HTTP client library and CLI fitting the API of [`Uqrate`](https://uqrate.org "uqrate.org") services. 
 
 ```bash
 $ go get -u github.com/sempernow/uqc
 ```
 
-## `client`
+## `client` package
 
-```golang
-import "github.com/sempernow/uqc/client"
-```
-
-The client package provides an http client as a golang library to access uqrate services. Its functions return a `client.Response`.
+Each of its functions return a `client.Response`.
 
 ```golang
 type Response struct {
@@ -22,16 +18,17 @@ type Response struct {
 }
 ```
 
-## `cli`
+## `cli` package
 
-This is the prototype standalone CLI. Each of its commands is a function of the `client` or `wordpress` packages.
+The buildable CLI. Its commands execute functions of `client` or `wordpress` packages. 
+See `Makefile` recipes for the commands configured for `go run ...` execution (sans build).
 
 ```bash
 $ go build ./app/cli
 ```
 
-### `get`
+### Menu of project recipes
 
 ```bash
-$ cli get https://jsonplaceholder.typicode.com/todos/1
+$ make
 ```

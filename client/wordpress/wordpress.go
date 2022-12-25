@@ -1,6 +1,5 @@
-// Package wordpress handles WordPress and Uqrate REST APIs
-// for processing []wordpress.Post into []client.Message,
-// its Uqrate mirror, and handling a list of such sites.
+// Package wordpress handles REST APIs of WordPress and Uqrate
+// to process []wordpress.Post into []client.Message for upsert at Uqrate.
 package wordpress
 
 import (
