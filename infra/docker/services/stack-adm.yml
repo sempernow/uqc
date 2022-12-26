@@ -2,10 +2,11 @@
 version: '3.8'  # @ Docker Engine 19.03.0+
 
 x-logopts: # https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields 
-    &common-logopts # https://docs.docker.com/compose/compose-file/compose-file-v3/#logging 
+    &common-logopts # https://docs.docker.com/config/containers/logging/configure/
     options:
         max-size: '12m'
         max-file: '5'
+        mode: non-blocking #... Prevents backpressure, but does this apply @ json-file driver?
     driver: json-file
 
 volumes:  
