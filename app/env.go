@@ -119,7 +119,7 @@ func NewEnv(osArgs []string) (*client.Env, error) {
 	}
 
 	return &client.Env{
-		Logger:        log.New(os.Stdout, NS, log.LstdFlags),
+		Logger:        log.New(os.Stdout, NS+" ", log.LstdFlags),
 		Args:          cfg.Args,
 		NS:            NS,
 		Assets:        cfg.Assets,

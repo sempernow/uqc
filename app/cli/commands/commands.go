@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ardanlabs/conf"
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/client/wordpress"
 	"github.com/sempernow/uqc/kit/convert"
@@ -38,16 +39,15 @@ func UpsertChannels(env *client.Env) {
 		}
 		rsp := wp.Env.PostByTkn(tkn, env.Service.BaseAPI+"/c/upsert", &chn)
 		if rsp.Code > 299 {
-			env.Logger.Printf("ERR @ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			env.Logger.Printf("ERR : PostByTkn @ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		} else {
-			env.Logger.Printf("@ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			env.Logger.Printf("INFO : PostByTkn @ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		}
 	}
 }
 
 // UpdateUsers of sites list with values therein.
 func UpdateUsers(env *client.Env) {
-
 	sites := wordpress.GetSitesList(env)
 
 	// All sites mirrored hereby share common password
@@ -102,44 +102,41 @@ func UpdateUsers(env *client.Env) {
 		// Update site (user) record
 		rsp := wp.Env.PutByTkn(tkn, env.Service.BaseAPI+"/u/"+site.OwnerID, &user)
 		if rsp.Code > 299 {
-			env.Logger.Printf("ERR @ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			env.Logger.Printf("ERR : PutByTkn @ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		} else {
-			env.Logger.Printf("@ %s : HTTP %d\n", env.Client.User, rsp.Code)
+			env.Logger.Printf("INFO : PutByTkn @ %s : HTTP %d\n", env.Client.User, rsp.Code)
 		}
 	}
 }
 
 // PurgeCacheTkns removes token cache.
 func PurgeCacheTkns(env *client.Env) {
-	env.Logger.Printf("Delete Tokens ("+client.CacheKeyTknPrefix+"*) @ %s\n", env.Cache)
+	env.Logger.Printf("INFO : PurgeCacheTkns ("+client.CacheKeyTknPrefix+"*) @ %s\n", env.Cache)
 	sites := wordpress.GetSitesList(env)
 	for _, site := range sites {
 		fname := client.CacheKeyTknPrefix + site.UserHandle
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
-			//env.Logger.Printf("ERR @ os.Remove : %v\n", err)
 		} else {
-			env.Logger.Printf("DEL @ %s\n", fname)
+			env.Logger.Printf("INFO : DEL @ %s\n", fname)
 		}
 	}
 }
 
 // PurgeCachePosts removes posts and messages cache.
 func PurgeCachePosts(env *client.Env) {
-	env.Logger.Printf("Delete Posts and Messages Cache : @ %s\n", env.Cache)
+	env.Logger.Printf("INFO: PurgeCachePosts @ %s\n", env.Cache)
 	sites := wordpress.GetSitesList(env)
 	for _, site := range sites {
 		domain := strings.Split(site.HostURL, "//")[1]
 		fname := domain + SUFFIX_POSTS
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
-			//env.Logger.Printf("ERR @ os.Remove : %v\n", err)
 		} else {
-			env.Logger.Printf("DEL @ %s\n", fname)
+			env.Logger.Printf("INFO : DEL @ %s\n", fname)
 		}
 		fname = domain + SUFFIX_MSGS
 		if err := os.Remove(filepath.Join(env.Cache, fname)); err != nil {
-			//env.Logger.Printf("ERR @ os.Remove : %v\n", err)
 		} else {
-			env.Logger.Printf("DEL @ %s\n", fname)
+			env.Logger.Printf("INFO : DEL @ %s\n", fname)
 		}
 	}
 }
@@ -164,18 +161,18 @@ func UpsertPosts(env *client.Env) {
 			// @ CSV header (first row)
 			continue
 		}
-		env.Logger.Printf("@ %d : %s\n", i, site.UserHandle)
+		env.Logger.Printf("INFO : Site #%d : %s\n", i, site.UserHandle)
 
 		wp = wordpress.NewWordPress(env, &site)
 		wp.SitePosts()
 		if len(wp.Site.Posts) == 0 {
-			env.Logger.Printf("WARN : NO Posts @ site : %s : %s\n", site.UserHandle, wp.Site.Error)
+			env.Logger.Printf("WARN : NO SitePosts @ %s : %s\n", site.UserHandle, wp.Site.Error)
 			continue
 		}
 
 		msgs = wp.PostsToMsgs()
 		if len(msgs) == 0 {
-			env.Logger.Printf("WARN : NO Messages converted for site : %s\n", site.UserHandle)
+			env.Logger.Printf("WARN : NO PostsToMsgs @ %s\n", site.UserHandle)
 			continue
 		}
 
@@ -188,25 +185,31 @@ func UpsertPosts(env *client.Env) {
 
 		for _, msg := range msgs {
 			rsp := env.UpsertMsgByTkn(&msg)
-			env.Logger.Printf("INFO : Messages Upserted @ %s : rsp: %s\n", site.UserHandle, convert.Stringify(rsp))
+			env.Logger.Printf("INFO : UpsertMsgByTkn @ %s : HTTP %d\n", site.UserHandle, rsp.Code)
 		}
 
 		domain := strings.Split(site.HostURL, "//")[1]
 		if err := env.SetCache(domain+SUFFIX_MSGS, convert.Stringify(msgs)); err != nil {
-			env.Logger.Printf("ERR : setting *"+SUFFIX_MSGS+" cache : %s : %s\n", site.UserHandle, err.Error())
+			env.Logger.Printf("ERR : SetCache @ %s : *"+SUFFIX_MSGS+" : %s\n", site.UserHandle, err.Error())
 		}
 	}
 }
 
 // UpsertPostsChron repeatedly runs the UpsertPosts task once per hours, forever.
 func UpsertPostsChron(env *client.Env, hours int) {
+	out, err := conf.String(env)
+	if err != nil {
+		env.Logger.Printf("ERR : generating config for output\n")
+	}
+	env.Logger.Printf("INFO : Config ...\n%v\n", out)
+
 	i := 1
 	for {
-		env.Logger.Printf("INFO : UpsertPosts : BEGIN  =====  #%d\n", i)
+		env.Logger.Printf("INFO : UpsertPosts : BEGIN #%d  >>>\n", i)
 
 		UpsertPosts(env)
 
-		env.Logger.Printf("INFO : UpsertPosts : END  =====  #%d\n", i)
+		env.Logger.Printf("INFO : UpsertPosts : END #%d  <<<\n", i)
 
 		time.Sleep(time.Duration(hours) * time.Hour)
 		i += 1

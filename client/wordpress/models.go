@@ -35,10 +35,14 @@ type Status struct {
 	Code   int    `json:"code,omitempty"`
 }
 
+// Docker configs paths
 const (
-	DockerCfgSitesListJSON = "sites_list_json"
-	DockerCfgSitesListCSV  = "sites_list_csv"
+	PathCfgSitesListJSON = "/sites_list_json"
+	PathCfgSitesListCSV  = "/sites_list_csv"
 )
+
+// WordPress REST API endpoints
+// https://developer.wordpress.org/rest-api/reference/
 const (
 	SiteURI    = "/wp-json/?_fields=name,description,url,home,gmt_offset"
 	PostsURI   = "/wp-json/wp/v2/posts?_fields=id,date,date_gmt,link,modified,modified_gmt,slug,GUID,title,content,excerpt,author,categories,tags,comment_status"

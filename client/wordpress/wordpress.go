@@ -38,8 +38,8 @@ func MakeSitesList(env *client.Env) []Site {
 
 	// Open the sites-list CSV file
 
-	env.Logger.Printf("INFO : Try read %s from Docker config\n", DockerCfgSitesListCSV)
-	bb, err := os.ReadFile(DockerCfgSitesListCSV)
+	env.Logger.Printf("INFO : Try read %s from Docker config\n", PathCfgSitesListCSV)
+	bb, err := os.ReadFile(PathCfgSitesListCSV)
 	if err != nil {
 		env.Logger.Printf("INFO : Try read %s from cache\n", env.SitesListCSV)
 		bb, err = os.ReadFile(filepath.Join(env.Assets, env.SitesListCSV))
@@ -87,8 +87,8 @@ func MakeSitesList(env *client.Env) []Site {
 // if exist, else makes and caches anew.
 func GetSitesList(env *client.Env) []Site {
 	sites := []Site{}
-	env.Logger.Printf("INFO : Try read %s from Docker config\n", DockerCfgSitesListJSON)
-	j, err := os.ReadFile(DockerCfgSitesListJSON)
+	env.Logger.Printf("INFO : Try read %s from Docker config\n", PathCfgSitesListJSON)
+	j, err := os.ReadFile(PathCfgSitesListJSON)
 	if err != nil {
 		env.Logger.Printf("INFO : Try read %s from cache\n", env.SitesListJSON)
 		j = env.GetCache(env.SitesListJSON)
