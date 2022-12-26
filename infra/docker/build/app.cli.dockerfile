@@ -33,8 +33,10 @@ RUN go build -a -ldflags="\
 #----------------------------------
 # https://hub.docker.com/_/alpine/ 
 FROM alpine:3.16.3
+LABEL image.base.name="hub.docker.com/_/alpine/alpine:3.16.3"
 
 ARG PKG_NAME
+ARG PKG_DESC
 ARG ARCH
 ARG HUB
 ARG PRJ
@@ -45,10 +47,21 @@ ARG SVN
 ARG VER
 ARG BUILT
 
+# https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys 
+LABEL image.authors="${AUTHORS}"
+LABEL image.created="${BUILT}"
+LABEL image.description="${PKG_DESC}"
+LABEL image.url="https://hub.docker.com/repository/docker/${HUB}/${PRJ}.${PKG_NAME}-${ARCH}"
+LABEL image.revision="${SVN}"
+LABEL image.source="https://github.com/sempernow/${PRJ}"
+LABEL image.title="${PKG_NAME}"
+LABEL image.vendor="${VENDOR}"
+LABEL image.version="${VER}"
+
 RUN apk update && apk --no-cache add jq tzdata && rm -rf /var/cache/apk/*
 # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-ENV TZ=America/New_York
-#ENV TZ=EST5EDT
+#ENV TZ=America/New_York
+ENV TZ=EST5EDT
 #ENV TZ=US/Eastern
 
 RUN mkdir -p /app/assets
@@ -62,13 +75,4 @@ WORKDIR /app
 CMD ["sleep", "1d"]
 # CMD ["/app/main", "upsertpostschron", "2"]
 
-# https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys 
-LABEL image.authors="${AUTHORS}"
-LABEL image.created="${BUILT}"
-LABEL image.from="alpine"
-LABEL image.hub="https://hub.docker.com/repository/docker/${HUB}/${PRJ}.${PKG_NAME}-${ARCH}"
-LABEL image.revision="${SVN}"
-LABEL image.source="https://${MODULE}/app/${PKG_NAME}"
-LABEL image.title="${PKG_NAME}"
-LABEL image.vendor="${VENDOR}"
-LABEL image.version="${VER}"
+

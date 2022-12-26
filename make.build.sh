@@ -11,6 +11,7 @@ docker build \
     -f ${APP_INFRA}/docker/build/$image \
     -t ${HUB}/${PRJ}.${1}-${ARCH}:${2} \
     --build-arg PKG_NAME=$1 \
+    --build-arg PKG_DESC="$(go list -f '{{ .Doc }}' ./app/$1)" \
     --build-arg ARCH=${ARCH} \
     --build-arg HUB=${HUB} \
     --build-arg PRJ=${PRJ} \
