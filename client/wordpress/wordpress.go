@@ -178,7 +178,7 @@ func (wp WP) getWP(uri string) (string, error) {
 	// First try cache.
 	bb := wp.Env.GetCache(key)
 	if len(bb) == 0 {
-		log.Printf("INFO : cache miss @ %s\n", key)
+		//log.Printf("INFO : cache miss @ %s\n", key)
 
 		// Hit the site softly
 		rsp := wp.Env.Get(url, client.JSON)
@@ -334,7 +334,7 @@ func (wp WP) objNameList(uri string, want []int) []string {
 	}
 	// If any want are missing, then get per id
 	if len(miss) > 0 {
-		log.Printf("INFO : name(s) miss (%d) @ uri: %s\n", len(miss), uri)
+		//log.Printf("INFO : name(s) miss (%d) @ uri: %s\n", len(miss), uri)
 		static := uri
 		for _, id := range miss {
 			uri = appendToURL(uri, convert.IntToString(id))

@@ -205,11 +205,11 @@ func UpsertPostsChron(env *client.Env, hours int) {
 
 	i := 1
 	for {
-		env.Logger.Printf("INFO : UpsertPosts : BEGIN #%d  >>>\n", i)
+		env.Logger.Printf("INFO : UpsertPosts : BEGIN #%d\n", i)
 
 		UpsertPosts(env)
 
-		env.Logger.Printf("INFO : UpsertPosts : END #%d  <<<\n", i)
+		env.Logger.Printf("INFO : UpsertPosts : END #%d\n", i)
 
 		time.Sleep(time.Duration(hours) * time.Hour)
 		i += 1
