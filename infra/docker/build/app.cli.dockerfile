@@ -1,8 +1,8 @@
-# Stage 1 
-#----------------------------------
-# https://docs.docker.com/develop/develop-images/dockerfile_best-practices
-# https://docs.docker.com/engine/reference/builder/ 
-# https://hub.docker.com/_/golang/ 
+## Stage 1 : Golang build
+## ----------------------
+## https://docs.docker.com/develop/develop-images/dockerfile_best-practices
+## https://docs.docker.com/engine/reference/builder/ 
+## https://hub.docker.com/_/golang/ 
 FROM golang:1.19.2-bullseye as builder
 
 ARG PKG_NAME
@@ -13,14 +13,14 @@ ARG VER
 ARG BUILT
 
 ARG ARCH
-# Settings for Golang compiler
 ENV CGO_ENABLED 0
-ENV GOARCH $ARCH
-ENV GOHOSTARCH $ARCH
+ENV GOARCH      $ARCH
+ENV GOHOSTARCH  $ARCH
 
 WORKDIR /work
 COPY . .
-#RUN go mod download -x
+## To download modules, but we rather COPY all (above) instead.
+# RUN go mod download -x
 
 WORKDIR /work/app/${PKG_NAME}
 RUN go build -a -ldflags="\
@@ -29,9 +29,8 @@ RUN go build -a -ldflags="\
     -X '${MODULE}/app.Version=${VER}' \
     -X '${MODULE}/app.Built=${BUILT}'"
 
-# Stage 2 
-#----------------------------------
-# https://hub.docker.com/_/alpine/ 
+## Stage 2 : https://hub.docker.com/_/alpine/ 
+## ------------------------------------------
 FROM alpine:3.16.3
 LABEL image.base.name="hub.docker.com/_/alpine/alpine:3.16.3"
 
@@ -47,7 +46,8 @@ ARG SVN
 ARG VER
 ARG BUILT
 
-# https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys 
+## Labels abide OCI spec for Annotation Keys
+## https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys 
 LABEL image.authors="${AUTHORS}"
 LABEL image.created="${BUILT}"
 LABEL image.description="${PKG_DESC}"
@@ -58,21 +58,20 @@ LABEL image.title="${PKG_NAME}"
 LABEL image.vendor="${VENDOR}"
 LABEL image.version="${VER}"
 
-RUN apk update && apk --no-cache add jq tzdata && rm -rf /var/cache/apk/*
-# https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-#ENV TZ=America/New_York
-ENV TZ=EST5EDT
-#ENV TZ=US/Eastern
+## Alpine packages : https://pkgs.alpinelinux.org/packages
+## @ tzdata : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# ENV TZ America/New_York
+ENV TZ EST5EDT
+RUN apk update \
+    && apk --no-cache add jq tzdata \
+    && rm -rf /var/cache/apk/*
 
-RUN mkdir -p /app/assets
-RUN mkdir -p /tmp/${PRJ}/cache
+RUN mkdir -p /app/assets /tmp/${PRJ}/cache
 
-ENV PATH="/app:${PATH}"
+ENV PATH "/app:${PATH}"
 
 COPY --from=builder /work/app/${PKG_NAME}/${PKG_NAME} /app/main
 
 WORKDIR /app
 CMD ["sleep", "1d"]
 # CMD ["/app/main", "upsertpostschron", "2"]
-
-
