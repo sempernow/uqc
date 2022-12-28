@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/imroc/req/v3"
-	"github.com/sempernow/uqc/kit/convert"
+	"github.com/sempernow/kit/convert"
 )
 
 // PutByKey makes PUT request with header: `X-API-KEY: <KEY>`

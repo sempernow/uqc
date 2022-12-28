@@ -15,10 +15,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sempernow/kit/convert"
+	"github.com/sempernow/kit/id"
+	"github.com/sempernow/kit/str"
 	"github.com/sempernow/uqc/client"
-	"github.com/sempernow/uqc/kit/convert"
-	"github.com/sempernow/uqc/kit/id"
-	"github.com/sempernow/uqc/kit/str"
 )
 
 // NewWordPress contains app environment and per-site configuration.

@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/sempernow/kit/convert"
 	"github.com/sempernow/uqc/client"
-	"github.com/sempernow/uqc/kit/convert"
 
 	"github.com/ardanlabs/conf"
 	"github.com/pkg/errors"

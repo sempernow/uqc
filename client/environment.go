@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/sempernow/uqc/kit/convert"
+	"github.com/sempernow/kit/convert"
 )
 
 func (env *Env) PrettyPrint() error {
