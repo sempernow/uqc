@@ -27,6 +27,13 @@ github.com/oklog/ulid
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
+# github.com/sempernow/kit v0.5.0
+## explicit
+github.com/sempernow/kit/convert
+github.com/sempernow/kit/id
+github.com/sempernow/kit/lorem
+github.com/sempernow/kit/str
+github.com/sempernow/kit/timestamp
 # golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 ## explicit; go 1.17
 golang.org/x/net/html

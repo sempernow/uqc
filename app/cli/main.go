@@ -13,10 +13,10 @@ import (
 	"github.com/sempernow/uqc/app/cli/commands"
 
 	//"github.com/sempernow/uqc/app/cli/commands"
+	"github.com/sempernow/kit/convert"
+	"github.com/sempernow/kit/timestamp"
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/client/wordpress"
-	"github.com/sempernow/uqc/kit/convert"
-	"github.com/sempernow/uqc/kit/timestamp"
 
 	"github.com/pkg/errors"
 )

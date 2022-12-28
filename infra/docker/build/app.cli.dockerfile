@@ -59,12 +59,12 @@ LABEL image.vendor="${VENDOR}"
 LABEL image.version="${VER}"
 
 ## Alpine packages : https://pkgs.alpinelinux.org/packages
-## @ tzdata : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-# ENV TZ America/New_York
-ENV TZ EST5EDT
 RUN apk update \
     && apk --no-cache add jq tzdata \
     && rm -rf /var/cache/apk/*
+
+## @ tzdata : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+ENV TZ America/New_York
 
 RUN mkdir -p /app/assets /tmp/${PRJ}/cache
 

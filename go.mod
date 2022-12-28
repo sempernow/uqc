@@ -8,6 +8,7 @@ require (
 	github.com/imroc/req/v3 v3.9.3
 	github.com/oklog/ulid v1.3.1
 	github.com/pkg/errors v0.9.1
+	github.com/sempernow/kit v0.5.1
 	lukechampine.com/blake3 v1.1.7
 )
 

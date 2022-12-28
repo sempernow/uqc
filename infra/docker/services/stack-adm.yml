@@ -1,12 +1,12 @@
-# https://docs.docker.com/compose/compose-file
-version: '3.8'  # @ Docker Engine 19.03.0+
+## https://docs.docker.com/compose/compose-file
+version: '3.8'  ## @ Docker Engine 19.03.0+
 
-x-logopts: # https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields 
-    &common-logopts # https://docs.docker.com/config/containers/logging/configure/
+x-logopts: ## https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields 
+    &common-logopts ## https://docs.docker.com/config/containers/logging/configure/
     options:
         max-size: '12m'
         max-file: '5'
-        mode: non-blocking #... Prevents backpressure, but does this apply @ json-file driver?
+        mode: non-blocking ##... Prevents backpressure, but does this apply @ json-file driver?
     driver: json-file
 
 volumes:  
@@ -16,8 +16,8 @@ networks:
     web:
 
 configs: 
-    # To update source(s) sans stack cycling (docker stack ... rm/deploy), 
-    # change the modified-source name(s) here and at their service(s).
+    ## To update source(s) sans stack cycling (docker stack ... rm/deploy), 
+    ## change the modified-source name(s) here and at their service(s).
     sites_list_csv:
         file: ${PATH_HOST_ROOT}/assets/${APP_SITES_LIST_CSV}
     sites_list_json:
@@ -29,11 +29,11 @@ services:
         volumes:
             #- cache:/app/cache
             - cache:/tmp/${PRJ}/cache
-            # Bind mount @ host okay ONLY @ single-host (docker-desktop) swarm:
+            ## Bind mount @ host okay ONLY @ single-host (docker-desktop) swarm:
             - ${PATH_HOST_ROOT}/assets:/app/assets
         networks:
             - web
-        # ports: # Unnecessary
+        # ports: ## Unnecessary
         #     - 8080:80
         configs: 
             - sites_list_csv
