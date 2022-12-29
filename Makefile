@@ -12,6 +12,7 @@ menu :
 	@echo '	push  : git push -u origin master'
 	@echo '	tag   : git tag v${VER_APP}  (VER_APP)'
 	@echo '	untag : git … : remove v${VER_APP}  (VER_APP)'
+	@echo '	tree  : tree -I "vendor|media"'
 
 	$(INFO) 'Docker Build / Stack :'
 	@echo '	pull   : docker pull …'
@@ -55,7 +56,8 @@ env :
 
 test :
 	go test ./...
-
+tree :
+	tree -I 'vendor|media'
 pkglist : 
 	$(INFO) '/app'
 	@push ./app; go list -f '{{ .Name | printf "%14s" }}  {{ .Doc }}' ./...;pop

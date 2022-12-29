@@ -1,10 +1,6 @@
-# [`sempernow/uqc`](https://github.com/sempernow/uqc "GitHub")
+# [`sempernow/uqc`](https://github.com/sempernow/uqc "GitHub") 
 
 An HTTP client library and CLI fitting the API of [`Uqrate`](https://uqrate.org "uqrate.org") services. 
-
-```bash
-$ go get -u github.com/sempernow/uqc
-```
 
 ## `client` package
 
@@ -32,3 +28,5 @@ $ go build ./app/cli
 ```bash
 $ make
 ```
+
+## [`tree`](tree.log)
