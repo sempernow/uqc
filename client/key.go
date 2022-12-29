@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/imroc/req/v3"
-	"github.com/sempernow/kit/convert"
+	"github.com/sempernow/kit/types/convert"
 )
 
 const KEY_ENDPT = "/c/key/"

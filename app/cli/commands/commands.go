@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/ardanlabs/conf"
-	"github.com/sempernow/kit/convert"
+	"github.com/sempernow/kit/types/convert"
 	"github.com/sempernow/uqc/client"
 	"github.com/sempernow/uqc/client/wordpress"
 )

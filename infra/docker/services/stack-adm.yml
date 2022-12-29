@@ -17,7 +17,7 @@ networks:
 
 configs: 
     ## To update source(s) sans stack cycling (docker stack ... rm/deploy), 
-    ## change the modified-source name(s) here and at their service(s).
+    ## modify source name(s) here and at their service(s).
     sites_list_csv:
         file: ${PATH_HOST_ROOT}/assets/${APP_SITES_LIST_CSV}
     sites_list_json:

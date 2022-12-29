@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/imroc/req/v3"
-	"github.com/sempernow/kit/convert"
+	"github.com/sempernow/kit/types/convert"
 )
 
 // UpsertMsgByTkn performs a POST request to Uqrate's API service endpoint

@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sempernow/kit/convert"
 	"github.com/sempernow/kit/id"
-	"github.com/sempernow/kit/str"
+	"github.com/sempernow/kit/types/convert"
+	"github.com/sempernow/kit/types/str"
 	"github.com/sempernow/uqc/client"
 )
 

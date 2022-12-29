@@ -7,7 +7,7 @@ require (
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/imroc/req/v3 v3.9.3
 	github.com/pkg/errors v0.9.1
-	github.com/sempernow/kit v0.5.1
+	github.com/sempernow/kit v0.6.0
 )
 
 require (
