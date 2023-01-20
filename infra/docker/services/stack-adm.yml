@@ -25,7 +25,7 @@ configs:
 
 services:
     cli: 
-        image: ${HUB}/${PRJ}.cli-${ARCH}:${VER_APP}
+        image: ${HUB}/${PRJ}.cli-${ARCH}:latest
         volumes:
             #- cache:/app/cache
             - cache:/tmp/${PRJ}/cache

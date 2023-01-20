@@ -67,7 +67,7 @@ pkglist :
 	@push ./kit; go list -f '{{ .Name | printf "%14s" }}  {{ .Doc }}' ./...;pop
 
 pull : 
-	docker pull ${HUB}/${PRJ}.cli-${ARCH}:${VER_APP}
+	docker pull ${HUB}/${PRJ}.cli-${ARCH} 
 fixdocker credstore:
 	sed -i 's/credsStore/credStore/g' ~/.docker/config.json
 

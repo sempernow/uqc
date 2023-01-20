@@ -6,10 +6,11 @@
 # -----------------------------------------------------------------------------
 
 export image="app.${1}.dockerfile"
+export tag='latest'
 
 docker build \
     -f ${APP_INFRA}/docker/build/$image \
-    -t ${HUB}/${PRJ}.${1}-${ARCH}:${2} \
+    -t ${HUB}/${PRJ}.${1}-${ARCH}:${tag} \
     --build-arg PKG_NAME=$1 \
     --build-arg PKG_DESC="$(go list -f '{{ .Doc }}' ./app/$1)" \
     --build-arg ARCH=${ARCH} \
@@ -21,7 +22,7 @@ docker build \
     --build-arg SVN=${SVN} \
     --build-arg VER=${2} \
     --build-arg BUILT="${BUILT}" \
-    . && docker push ${HUB}/${PRJ}.${1}-${ARCH}:${2} \
+    . && docker push ${HUB}/${PRJ}.${1}-${ARCH}:${tag} \
         && docker image prune -f
 
 exit
